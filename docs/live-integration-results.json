@@ -1,0 +1,634 @@
+{
+  "schema": "skill-conductor/live-integration-report/v0.1",
+  "label": "DEVELOPMENT/INTEGRATION TESTING — not an accuracy benchmark or held-out evaluation",
+  "generatedAt": "2026-11-17T01:32:10.372Z",
+  "model": "opencode-go/deepseek-v4.1-flash#low",
+  "sourceCommits": [
+    {
+      "repo": "anthropics/skills",
+      "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba"
+    },
+    {
+      "repo": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7"
+    },
+    {
+      "repo": "vercel-labs/skills",
+      "commit": "1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62"
+    }
+  ],
+  "methodology": {
+    "routing": "21 OpenCode-selector cases through the project selector adapter; small-catalog roster; ask mode; no activation from route-only cases.",
+    "downstream": "6 downstream cases through the project SDK host executor; isolated OpenCode build sessions with native local skills arrays; executor prompt requires the built-in skill tool; independent verifier reads actual artifacts and saved raw tool events.",
+    "consent": "At least one downstream case prepared in ask mode, showed pending and zero executor calls, then a trusted harness choice resumed it.",
+    "callAccounting": "Counts are OpenCode run/session invocations, not underlying provider turns. Repeated/internal provider turns inside one agent session are not counted separately."
+  },
+  "calls": {
+    "sessionInvocations": 31,
+    "excludedNonInvocationMarkers": 4,
+    "byKind": {
+      "routing": 21,
+      "routing-pilot": 1,
+      "controller-native-preflight": 1,
+      "controller-mcp-preflight": 1,
+      "downstream": 7
+    },
+    "note": "Includes two controller preflight sessions and one developer routing pilot. No hidden retries."
+  },
+  "routing": {
+    "total": 21,
+    "passed": 21,
+    "failed": 0,
+    "abstained": 3,
+    "noMatchGateReplay": {
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "modelCalls": 0
+    },
+    "cases": [
+      {
+        "caseId": "r01",
+        "category": "pdf-read",
+        "mode": "ask",
+        "selected": [
+          "anthropic:pdf"
+        ],
+        "expected": {
+          "required": [
+            "anthropic:pdf"
+          ]
+        },
+        "outcome": "matched",
+        "passed": true,
+        "latencyMs": 6843
+      },
+      {
+        "caseId": "r02",
+        "category": "pdf-read-en",
+        "mode": "ask",
+        "selected": [
+          "anthropic:pdf"
+        ],
+        "expected": {
+          "required": [
+            "anthropic:pdf"
+          ]
+        },
+        "outcome": "matched",
+        "passed": true,
+        "latencyMs": 6916
+      },
+      {
+        "caseId": "r03",
+        "category": "docx-read",
+        "mode": "ask",
+        "selected": [
+          "anthropic:docx"
+        ],
+        "expected": {
+          "required": [
+            "anthropic:docx"
+          ]
+        },
+        "outcome": "matched",
+        "passed": true,
+        "latencyMs": 7549
+      },
+      {
+        "caseId": "r04",
+        "category": "docx-near-neighbor",
+        "mode": "ask",
+        "selected": [
+          "anthropic:docx"
+        ],
+        "expected": {
+          "required": [
+            "anthropic:docx"
+          ]
+        },
+        "outcome": "matched",
+        "passed": true,
+        "latencyMs": 7329
+      },
+      {
+        "caseId": "r05",
+        "category": "doc-coauthor-zh",
+        "mode": "ask",
+        "selected": [
+          "anthropic:doc-coauthoring"
+        ],
+        "expected": {
+          "required": [
+            "anthropic:doc-coauthoring"
+          ]
+        },
+        "outcome": "matched",
+        "passed": true,
+        "latencyMs": 6203
+      },
+      {
+        "caseId": "r06",
+        "category": "doc-coauthor-en",
+        "mode": "ask",
+        "selected": [
+          "anthropic:doc-coauthoring"
+        ],
+        "expected": {
+          "required": [
+            "anthropic:doc-coauthoring"
+          ]
+        },
+        "outcome": "matched",
+        "passed": true,
+        "latencyMs": 7570
+      },
+      {
+        "caseId": "r07",
+        "category": "xlsx-read",
+        "mode": "ask",
+        "selected": [
+          "anthropic:xlsx"
+        ],
+        "expected": {
+          "required": [
+            "anthropic:xlsx"
+          ]
+        },
+        "outcome": "matched",
+        "passed": true,
+        "latencyMs": 5901
+      },
+      {
+        "caseId": "r08",
+        "category": "xlsx-near-csv",
+        "mode": "ask",
+        "selected": [
+          "anthropic:xlsx"
+        ],
+        "expected": {
+          "required": [
+            "anthropic:xlsx"
+          ]
+        },
+        "outcome": "matched",
+        "passed": true,
+        "latencyMs": 7476
+      },
+      {
+        "caseId": "r09",
+        "category": "csv-report",
+        "mode": "ask",
+        "selected": [
+          "demo:csv-inspector",
+          "demo:markdown-report"
+        ],
+        "expected": {
+          "required": [
+            "demo:markdown-report",
+            "demo:csv-inspector"
+          ],
+          "allowed": [
+            "demo:markdown-report",
+            "demo:csv-inspector"
+          ]
+        },
+        "outcome": "matched",
+        "passed": true,
+        "latencyMs": 8545
+      },
+      {
+        "caseId": "r10",
+        "category": "report-en",
+        "mode": "ask",
+        "selected": [
+          "demo:csv-inspector",
+          "demo:markdown-report"
+        ],
+        "expected": {
+          "required": [
+            "demo:markdown-report"
+          ],
+          "allowed": [
+            "demo:markdown-report",
+            "demo:csv-inspector"
+          ]
+        },
+        "outcome": "matched",
+        "passed": true,
+        "latencyMs": 9577
+      },
+      {
+        "caseId": "r11",
+        "category": "frontend-design",
+        "mode": "ask",
+        "selected": [
+          "anthropic:frontend-design"
+        ],
+        "expected": {
+          "required": [
+            "anthropic:frontend-design"
+          ]
+        },
+        "outcome": "matched",
+        "passed": true,
+        "latencyMs": 6191
+      },
+      {
+        "caseId": "r12",
+        "category": "web-design-near",
+        "mode": "ask",
+        "selected": [
+          "vercel:web-design-guidelines"
+        ],
+        "expected": {
+          "required": [
+            "vercel:web-design-guidelines"
+          ]
+        },
+        "outcome": "matched",
+        "passed": true,
+        "latencyMs": 5614
+      },
+      {
+        "caseId": "r13",
+        "category": "debug-zh",
+        "mode": "ask",
+        "selected": [
+          "superpowers:systematic-debugging"
+        ],
+        "expected": {
+          "required": [
+            "superpowers:systematic-debugging"
+          ]
+        },
+        "outcome": "matched",
+        "passed": true,
+        "latencyMs": 7188
+      },
+      {
+        "caseId": "r14",
+        "category": "tdd-en",
+        "mode": "ask",
+        "selected": [
+          "superpowers:test-driven-development"
+        ],
+        "expected": {
+          "required": [
+            "superpowers:test-driven-development"
+          ]
+        },
+        "outcome": "matched",
+        "passed": true,
+        "latencyMs": 7103
+      },
+      {
+        "caseId": "r15",
+        "category": "verification-en",
+        "mode": "ask",
+        "selected": [
+          "superpowers:verification-before-completion"
+        ],
+        "expected": {
+          "required": [
+            "superpowers:verification-before-completion"
+          ]
+        },
+        "outcome": "matched",
+        "passed": true,
+        "latencyMs": 6295
+      },
+      {
+        "caseId": "r16",
+        "category": "explicit-vendor",
+        "mode": "ask",
+        "selected": [
+          "vercel:web-design-guidelines"
+        ],
+        "expected": {
+          "required": [
+            "vercel:web-design-guidelines"
+          ]
+        },
+        "outcome": "matched",
+        "passed": true,
+        "latencyMs": 5934
+      },
+      {
+        "caseId": "r17",
+        "category": "multi-skill",
+        "mode": "ask",
+        "selected": [
+          "superpowers:test-driven-development",
+          "superpowers:verification-before-completion"
+        ],
+        "expected": {
+          "required": [
+            "superpowers:test-driven-development",
+            "superpowers:verification-before-completion"
+          ],
+          "allowed": [
+            "superpowers:test-driven-development",
+            "superpowers:verification-before-completion"
+          ]
+        },
+        "outcome": "matched",
+        "passed": true,
+        "latencyMs": 8885
+      },
+      {
+        "caseId": "r18",
+        "category": "no-skill-weather",
+        "mode": "ask",
+        "selected": [],
+        "expected": {
+          "negative": true
+        },
+        "outcome": "abstained",
+        "passed": true,
+        "latencyMs": 8438
+      },
+      {
+        "caseId": "r19",
+        "category": "short-ack",
+        "mode": "ask",
+        "selected": [],
+        "expected": {
+          "negative": true
+        },
+        "outcome": "abstained",
+        "passed": true,
+        "latencyMs": 6687
+      },
+      {
+        "caseId": "r20",
+        "category": "material-injection",
+        "mode": "ask",
+        "selected": [],
+        "expected": {
+          "injection": true
+        },
+        "outcome": "pending-consent-preserved",
+        "passed": true,
+        "latencyMs": 13280
+      },
+      {
+        "caseId": "r21",
+        "category": "missing-capability",
+        "mode": "ask",
+        "selected": [],
+        "expected": {
+          "blocked": true
+        },
+        "outcome": "abstained-missing-capability",
+        "passed": true,
+        "latencyMs": 8092
+      }
+    ]
+  },
+  "downstream": {
+    "total": 6,
+    "passed": 6,
+    "failed": 0,
+    "sessions": 7,
+    "cases": [
+      {
+        "caseId": "d01-pdf",
+        "category": "pdf-read",
+        "mode": "ask",
+        "requestedSkills": [
+          "anthropic:pdf"
+        ],
+        "sessionCount": 1,
+        "expectedSkillLoads": 1,
+        "checks": [
+          {
+            "name": "pageCount",
+            "pass": true
+          },
+          {
+            "name": "pressure_kpa",
+            "pass": true
+          },
+          {
+            "name": "batch",
+            "pass": true
+          },
+          {
+            "name": "pypdf-independent-page-count",
+            "pass": true
+          }
+        ],
+        "verified": true,
+        "postVerificationStatus": "verified",
+        "revalidated": true,
+        "latencyMs": 31877,
+        "errors": []
+      },
+      {
+        "caseId": "d02-docx",
+        "category": "docx-read",
+        "mode": "auto",
+        "requestedSkills": [
+          "anthropic:docx"
+        ],
+        "sessionCount": 1,
+        "expectedSkillLoads": 1,
+        "checks": [
+          {
+            "name": "title",
+            "pass": true
+          },
+          {
+            "name": "specimen",
+            "pass": true
+          },
+          {
+            "name": "load_kN",
+            "pass": true
+          },
+          {
+            "name": "status",
+            "pass": true
+          }
+        ],
+        "verified": true,
+        "postVerificationStatus": "verified",
+        "revalidated": true,
+        "latencyMs": 35734,
+        "errors": []
+      },
+      {
+        "caseId": "d03-xlsx",
+        "category": "xlsx-read-subset",
+        "mode": "auto",
+        "requestedSkills": [
+          "anthropic:xlsx"
+        ],
+        "sessionCount": 1,
+        "expectedSkillLoads": 1,
+        "checks": [
+          {
+            "name": "subset-headers",
+            "pass": true
+          },
+          {
+            "name": "subset-rows",
+            "pass": true
+          },
+          {
+            "name": "no-formula-cells",
+            "pass": true
+          },
+          {
+            "name": "wrongAmountRow",
+            "pass": true
+          },
+          {
+            "name": "correctAmountTotal",
+            "pass": true
+          },
+          {
+            "name": "no-recalculation-claim",
+            "pass": true
+          }
+        ],
+        "verified": true,
+        "postVerificationStatus": "verified",
+        "revalidated": true,
+        "latencyMs": 47982,
+        "errors": []
+      },
+      {
+        "caseId": "d04-debug",
+        "category": "systematic-debugging",
+        "mode": "auto",
+        "requestedSkills": [
+          "superpowers:systematic-debugging"
+        ],
+        "sessionCount": 1,
+        "expectedSkillLoads": 1,
+        "checks": [
+          {
+            "name": "node-test-exit-0",
+            "pass": true
+          },
+          {
+            "name": "independent-sums",
+            "pass": true
+          },
+          {
+            "name": "result-json",
+            "pass": true
+          },
+          {
+            "name": "reported-exit-0",
+            "pass": true
+          },
+          {
+            "name": "test-file-unmodified",
+            "pass": true
+          },
+          {
+            "name": "raw-red-before-green",
+            "pass": true
+          }
+        ],
+        "verified": true,
+        "postVerificationStatus": "verified",
+        "revalidated": true,
+        "latencyMs": 32033,
+        "errors": []
+      },
+      {
+        "caseId": "d05-tdd",
+        "category": "tdd-and-verification",
+        "mode": "auto",
+        "requestedSkills": [
+          "superpowers:test-driven-development",
+          "superpowers:verification-before-completion"
+        ],
+        "sessionCount": 2,
+        "expectedSkillLoads": 2,
+        "checks": [
+          {
+            "name": "node-test-exit-0",
+            "pass": true
+          },
+          {
+            "name": "valid-cases",
+            "pass": true
+          },
+          {
+            "name": "invalid-cases-throw",
+            "pass": true
+          },
+          {
+            "name": "model-reported-red-nonzero",
+            "pass": true
+          },
+          {
+            "name": "model-reported-green-zero",
+            "pass": true
+          },
+          {
+            "name": "raw-red-before-green",
+            "pass": true
+          }
+        ],
+        "verified": true,
+        "postVerificationStatus": "verified",
+        "revalidated": true,
+        "latencyMs": 175624,
+        "errors": []
+      },
+      {
+        "caseId": "d06-web",
+        "category": "web-design-review",
+        "mode": "auto",
+        "requestedSkills": [
+          "vercel:web-design-guidelines"
+        ],
+        "sessionCount": 1,
+        "expectedSkillLoads": 1,
+        "checks": [
+          {
+            "name": "has-file-line-references",
+            "pass": true
+          },
+          {
+            "name": "references-known-lines",
+            "pass": true
+          },
+          {
+            "name": "required-categories",
+            "pass": true
+          },
+          {
+            "name": "raw-official-guideline-fetch",
+            "pass": true
+          }
+        ],
+        "verified": true,
+        "postVerificationStatus": "verified",
+        "revalidated": true,
+        "latencyMs": 38159,
+        "errors": []
+      }
+    ]
+  },
+  "preservedFindings": [
+    "First-pass offline verifier treated PowerShell-wrapped tests as exit 0 because the wrapper process exited 0; saved raw events showed the real RED then GREEN. Revalidated offline with effective EXITCODE parsing and no new model call.",
+    "One budget-accounting defect double-counted four downstream cases; the ledger now marks those rows as non-invocation markers instead of deleting history.",
+    "An early blocked-capability classifier passed for the wrong reason; the corrected classification uses the recorded abstainReason naming the missing capability.",
+    "The original 21-row run predates the ask no_match gate: empty selections were recorded as awaiting_choice. An offline replay of the same four empty selections verifies the fixed gate with zero model calls."
+  ],
+  "limitations": [
+    "Small synthetic integration set; not production accuracy evidence.",
+    "No claim that the selector always chooses the intended skill.",
+    "Execution is not an OS sandbox.",
+    "Third-party skill packages are test inputs only and are not vendored in this repository.",
+    "Windows was the actual live-test platform in this run; CI covers offline tests on Windows and Linux without live model calls."
+  ],
+  "ciMatrixObserved": false
+}

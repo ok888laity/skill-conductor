@@ -1,0 +1,52 @@
+{
+  "date": "2026-11-17",
+  "product": "Skill Conductor",
+  "decisions": [
+    {
+      "question": "开发工具与产品平台",
+      "choice": "OpenCode/DeepSeek 用于开发；核心 SDK/CLI/MCP 与宿主解耦。",
+      "basis": "用户明确纠正"
+    },
+    {
+      "question": "是否自动使用 skill",
+      "choice": "默认 ask；推荐后用户选择、组合、跳过。显式 opt-in auto 后才自主。",
+      "basis": "用户明确要求"
+    },
+    {
+      "question": "智能选择的实现",
+      "choice": "宿主 selector 回调作为核心接口，可选 HTTP/CLI 模型适配器；离线 lexical 明确标注。",
+      "basis": "多上游设计与本地可复现性"
+    },
+    {
+      "question": "资料范围",
+      "choice": "显式传入的材料及观察，有限文本提取、来源/hash/截断标记；二进制元数据不伪装已理解全文。",
+      "basis": "避免无依据全盘读取和模型输入混淆"
+    },
+    {
+      "question": "已有 skill",
+      "choice": "读取现有 SKILL.md，按需读取支持资源；不重建安装器，不擅改全局技能。",
+      "basis": "Agent Skills/OpenSkills/Vercel Skills"
+    },
+    {
+      "question": "执行边界",
+      "choice": "instruction package 交给宿主执行；受信任脚本入口可自动跑；模型推荐无权生成执行命令或批准自己。",
+      "basis": "Skillz/原生 OpenCode 与静态执行器源码审查"
+    },
+    {
+      "question": "成功证据",
+      "choice": "routed、awaiting_choice、activated、executed、verified 分开；每步保存实际输入、选择理由和输出。",
+      "basis": "SR-Agents 分解评测与用户可复核偏好"
+    },
+    {
+      "question": "创新声明",
+      "choice": "当前是有来源的工程组合方案；小样本测试不证明生产准确率或学术独创。",
+      "basis": "GitHub 最强近邻审查"
+    }
+  ],
+  "repositoryReview": {
+    "documentedSources": 16,
+    "sourceFilesInspected": 8,
+    "claimsIndependentlyReproduced": false
+  },
+  "pending": "开发产物完成后由控制者运行独立验收及小规模真实模型试跑"
+}

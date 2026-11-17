@@ -1,0 +1,51 @@
+{
+  "roots": [
+    {
+      "path": "../skills",
+      "namespace": "demo",
+      "trusted": true
+    }
+  ],
+  "includeHidden": false,
+  "selector": {
+    "mode": "lexical",
+    "maxCandidates": 20,
+    "minScore": 0.8,
+    "ambiguityGap": 0.12,
+    "semanticAllThreshold": 40,
+    "semanticPrefilterLimit": 30,
+    "maxSelection": 3,
+    "timeoutMs": 60000
+  },
+  "policy": {
+    "mode": "ask"
+  },
+  "capabilities": ["filesystem.read", "filesystem.write"],
+  "execution": {
+    "enabled": true,
+    "allowlist": ["demo:csv-inspector", "demo:markdown-report"],
+    "trustedSkillIds": ["demo:csv-inspector", "demo:markdown-report"],
+    "timeoutMs": 30000,
+    "maxOutputBytes": 65536,
+    "maxArtifacts": 20,
+    "maxResourceBytes": 262144,
+    "stopOnError": true,
+    "captureOutput": true,
+    "runDir": "../runs"
+  },
+  "materials": {
+    "maxFileBytes": 1048576,
+    "maxTotalBytes": 4194304,
+    "maxFiles": 16,
+    "allowRoots": [".."]
+  },
+  "mcp": {
+    "allowExecution": false,
+    "maxInputBytes": 1048576
+  },
+  "review": {
+    "enabled": false,
+    "host": "127.0.0.1",
+    "port": 0
+  }
+}

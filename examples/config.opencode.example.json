@@ -1,0 +1,46 @@
+{
+  "roots": [
+    {
+      "path": "../skills",
+      "namespace": "demo",
+      "trusted": true
+    }
+  ],
+  "policy": {
+    "mode": "ask"
+  },
+  "capabilities": [
+    "filesystem.read",
+    "filesystem.write"
+  ],
+  "execution": {
+    "enabled": true,
+    "allowlist": [
+      "demo:csv-inspector",
+      "demo:markdown-report"
+    ],
+    "trustedSkillIds": [
+      "demo:csv-inspector",
+      "demo:markdown-report"
+    ],
+    "runDir": "../runs"
+  },
+  "materials": {
+    "allowRoots": [
+      ".."
+    ]
+  },
+  "mcp": {
+    "allowExecution": false
+  },
+  "selector": {
+    "mode": "opencode",
+    "timeoutMs": 180000,
+    "opencode": {
+      "model": "opencode-go/deepseek-v4.1-flash#low",
+      "agent": "plan",
+      "standalone": true,
+      "archived": true
+    }
+  }
+}

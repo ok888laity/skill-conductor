@@ -1,0 +1,14 @@
+{
+  "version": "0.1",
+  "triggers": ["CSV", "销售", "数据统计", "统计指标", "表格", "data analysis"],
+  "avoidTriggers": ["不要统计", "do not inspect"],
+  "tags": ["csv", "statistics"],
+  "requiredCapabilities": ["filesystem.read", "filesystem.write"],
+  "resources": ["reference.md"],
+  "whenToUse": "当用户提供 CSV 并需要真实行列或数值摘要时使用。",
+  "executable": {
+    "name": "inspect-csv",
+    "entry": "scripts/inspect.mjs",
+    "runtime": "node"
+  }
+}

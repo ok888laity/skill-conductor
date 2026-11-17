@@ -1,0 +1,43 @@
+{
+  "name": "skill-conductor",
+  "version": "0.1.0",
+  "description": "Host-neutral SKILL.md discovery, human-choice or autonomous routing, activation and optional trusted execution.",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=20.11"
+  },
+  "bin": {
+    "skill-conductor": "./bin/skill-conductor.mjs"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.mjs"
+    }
+  },
+  "files": [
+    "bin",
+    "src",
+    "skills",
+    "data",
+    "examples",
+    "evals",
+    "docs",
+    "skill-conductor.cmd",
+    "README.md",
+    "README.en.md",
+    "ATTRIBUTION.md",
+    "LICENSE",
+    "scripts",
+    "tests",
+    "research"
+  ],
+  "scripts": {
+    "test": "node --test tests/foundation.test.mjs tests/runtime.test.mjs tests/mcp-cli.test.mjs tests/process-cleanup.test.mjs tests/http-selector.test.mjs",
+    "demo": "node bin/skill-conductor.mjs demo",
+    "eval": "node evals/run-eval.mjs",
+    "mcp": "node bin/skill-conductor.mjs mcp --config examples/config.demo.json"
+  }
+}

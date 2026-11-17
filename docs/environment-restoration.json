@@ -1,0 +1,16 @@
+{
+  "schema": "skill-conductor/environment-restoration/v1",
+  "verifiedAt": "2026-11-17T01:39:42.0087595Z",
+  "downloadedTemporarySkillPackagesRemoved": 10,
+  "temporaryTestTreeRemoved": true,
+  "retainedAuditArtifactFiles": 27,
+  "originalSkillRelatedFilesBefore": 580,
+  "originalSkillRelatedFilesAfter": 580,
+  "added": 0,
+  "removed": 0,
+  "changed": 0,
+  "originalRootExistenceUnchanged": true,
+  "originalSkillEnvironmentUnchanged": true,
+  "knownSystemTempTestBackupRemoved": true,
+  "scope": "This development run; original global skill content and directory existence compared to pre-test snapshot. Source code repairs and audit evidence retained."
+}

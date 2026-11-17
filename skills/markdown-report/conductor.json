@@ -1,0 +1,15 @@
+{
+  "version": "0.1",
+  "triggers": ["Markdown 报告", "生成报告", "销售报告", "CSV 报告", "report", "总结报告"],
+  "avoidTriggers": ["不要报告", "do not report"],
+  "tags": ["markdown", "report"],
+  "requiredCapabilities": ["filesystem.read", "filesystem.write"],
+  "dependencies": ["csv-inspector"],
+  "resources": ["template.md"],
+  "whenToUse": "当已经有 CSV 统计结果并需要生成 Markdown 交付物时使用。",
+  "executable": {
+    "name": "write-report",
+    "entry": "scripts/report.mjs",
+    "runtime": "node"
+  }
+}

@@ -1,0 +1,367 @@
+{
+  "date": "2026-11-17",
+  "purpose": "用户要求先广泛调研，再由 Codex 调度 OpenCode 中的 opencode-go/deepseek-v4.1-flash 开发。项目不绑定 OpenCode。",
+  "sources": [
+    {
+      "repo": "numman-ali/openskills",
+      "url": "https://github.com/numman-ali/openskills",
+      "readmeUrl": "https://github.com/numman-ali/openskills/blob/main/README.md",
+      "readmeSha": "03e2d776138e14ae69cebba959f1cb944179b7a1",
+      "metadata": {
+        "repo": "numman-ali/openskills",
+        "full_name": "numman-ali/openskills",
+        "description": "Universal skills loader for AI coding agents - npm i -g openskills",
+        "stars": 10832,
+        "archived": false,
+        "updated_at": "2026-11-15T10:56:08Z",
+        "pushed_at": "2026-01-18T13:09:50Z",
+        "default_branch": "main",
+        "license": "NOASSERTION"
+      },
+      "borrow": "通用 CLI 加载器；AGENTS 索引；渐进披露；借鉴现有目录和资源相对路径规则，不重做安装生态。",
+      "limit": "不是语义选择器；提供指导不等于执行任务。",
+      "readmeRead": true,
+      "audit": "documentation unless sourceAudits below explicitly lists source"
+    },
+    {
+      "repo": "vercel-labs/skills",
+      "url": "https://github.com/vercel-labs/skills",
+      "readmeUrl": "https://github.com/vercel-labs/skills/blob/main/README.md",
+      "readmeSha": "d7973f93ec761f978f419ca71399dbdc41109355",
+      "metadata": {
+        "repo": "vercel-labs/skills",
+        "full_name": "vercel-labs/skills",
+        "description": "The open agent skills tool - npx skills",
+        "stars": 39650,
+        "archived": false,
+        "updated_at": "2026-11-16T16:49:47Z",
+        "pushed_at": "2026-11-16T10:28:01Z",
+        "default_branch": "main",
+        "license": "MIT"
+      },
+      "borrow": "跨宿主安装生态、use 一次使用、内容 hash/commit 锁；借鉴来源和版本追溯。",
+      "limit": "安装/发现与工作过程中动态路由是不同职责。",
+      "readmeRead": true,
+      "audit": "documentation unless sourceAudits below explicitly lists source"
+    },
+    {
+      "repo": "agentskills/agentskills",
+      "url": "https://github.com/agentskills/agentskills",
+      "readmeUrl": "https://github.com/agentskills/agentskills/blob/main/README.md",
+      "readmeSha": "247e4a18e908d3bf27092f886f25c2515d84ecbc",
+      "metadata": {
+        "repo": "agentskills/agentskills",
+        "full_name": "agentskills/agentskills",
+        "description": "Specification and documentation for Agent Skills",
+        "stars": 27352,
+        "archived": false,
+        "updated_at": "2026-11-16T16:45:26Z",
+        "pushed_at": "2026-11-04T19:47:27Z",
+        "default_branch": "main",
+        "license": "Apache-2.0"
+      },
+      "borrow": "SKILL.md 开放格式及 discovery/activation/execution 三阶段。",
+      "limit": "标准是格式，不是完整路由执行运行时。",
+      "readmeRead": true,
+      "audit": "documentation unless sourceAudits below explicitly lists source"
+    },
+    {
+      "repo": "joshuadavidthomas/opencode-agent-skills",
+      "url": "https://github.com/joshuadavidthomas/opencode-agent-skills",
+      "readmeUrl": "https://github.com/joshuadavidthomas/opencode-agent-skills/blob/main/README.md",
+      "readmeSha": "76bd88ebb47bd72b67bfbaaa1458126f5831c2f6",
+      "metadata": {
+        "repo": "joshuadavidthomas/opencode-agent-skills",
+        "full_name": "joshuadavidthomas/opencode-agent-skills",
+        "description": "An OpenCode plugin that provides tools for using agent skills",
+        "stars": 290,
+        "archived": false,
+        "updated_at": "2026-11-16T09:03:33Z",
+        "pushed_at": "2026-11-04T07:54:46Z",
+        "default_branch": "main",
+        "license": "MIT"
+      },
+      "borrow": "语义 embedding Top-K；上下文注入；compaction 后恢复；技能资源/脚本工具。",
+      "limit": "OpenCode 绑定；README maintenance；src/embeddings.ts 默认 MiniLM，未独立验证中文；兼容本机 v2 未实测。",
+      "readmeRead": true,
+      "audit": "documentation unless sourceAudits below explicitly lists source"
+    },
+    {
+      "repo": "legendtkl/agentic-skill-router",
+      "url": "https://github.com/legendtkl/agentic-skill-router",
+      "readmeUrl": "https://github.com/legendtkl/agentic-skill-router/blob/main/README.md",
+      "readmeSha": "bcc9dcaf02f003c02fa920bcd0cde39c47a5c890",
+      "metadata": {
+        "repo": "legendtkl/agentic-skill-router",
+        "full_name": "legendtkl/agentic-skill-router",
+        "description": "No-embedding Agentic Skill Router for modern agent",
+        "stars": 8,
+        "archived": false,
+        "updated_at": "2026-11-05T14:02:28Z",
+        "pushed_at": "2026-06-04T06:02:56Z",
+        "default_branch": "main",
+        "license": "MIT"
+      },
+      "borrow": "元数据优先、bounded search、有依据的选择、歧义与无匹配回退、跨宿主扫描、评测分层。",
+      "limit": "主要是技能库存和停用技能路由；本项目不自动重命名或禁用用户技能。",
+      "readmeRead": true,
+      "audit": "documentation unless sourceAudits below explicitly lists source"
+    },
+    {
+      "repo": "paulpas/agent-skill-router",
+      "url": "https://github.com/paulpas/agent-skill-router",
+      "readmeUrl": "https://github.com/paulpas/agent-skill-router/blob/main/README.md",
+      "readmeSha": "9802b232fc8966316e211fb56ebf1bd0fce29c68",
+      "metadata": {
+        "repo": "paulpas/agent-skill-router",
+        "full_name": "paulpas/agent-skill-router",
+        "description": "Skills for AI Agents to leverage",
+        "stars": 10,
+        "archived": false,
+        "updated_at": "2026-11-03T05:07:10Z",
+        "pushed_at": "2026-11-13T15:17:25Z",
+        "default_branch": "main",
+        "license": "NOASSERTION"
+      },
+      "borrow": "BM25+向量+触发器+LLM rerank，多技能依赖计划、反触发和审计日志。",
+      "limit": "需要服务/依赖；源码 ExecutionEngine 使用 promise.state 判断完成和 Promise.race 超时，不能盲目复用，须真实终止和等待清理。README 性能非本机实测。",
+      "readmeRead": false,
+      "audit": "documentation unless sourceAudits below explicitly lists source"
+    },
+    {
+      "repo": "sowhan/skill-search",
+      "url": "https://github.com/sowhan/skill-search",
+      "readmeUrl": "https://github.com/sowhan/skill-search/blob/main/README.md",
+      "readmeSha": "b5afd4cbdbd7855d9a2e00e3a35c1976fcb9f7ef",
+      "metadata": {
+        "repo": "sowhan/skill-search",
+        "full_name": "sowhan/skill-search",
+        "description": "Semantic, on-demand skill retrieval for Claude Code — replaces the per-turn skill-listing token tax with a vector retriever over full skill descriptions.",
+        "stars": 8,
+        "archived": false,
+        "updated_at": "2026-07-04T05:44:57Z",
+        "pushed_at": "2026-06-18T20:39:53Z",
+        "default_branch": "main",
+        "license": "MIT"
+      },
+      "borrow": "MCP 按需语义检索；增量 hash；health/drift；本地 embedding 可替换。",
+      "limit": "依赖 Qdrant/fastembed；默认 bge-small-en；117 技能和24查询指标均作者自报、未复核。",
+      "readmeRead": true,
+      "audit": "documentation unless sourceAudits below explicitly lists source"
+    },
+    {
+      "repo": "joshrotenberg/skillet",
+      "url": "https://github.com/joshrotenberg/skillet",
+      "readmeUrl": "https://github.com/joshrotenberg/skillet/blob/main/README.md",
+      "readmeSha": "f58de49c19f016bf5eaa0a275a24b485ade07fd4",
+      "metadata": {
+        "repo": "joshrotenberg/skillet",
+        "full_name": "joshrotenberg/skillet",
+        "description": "MCP-native skill discovery for AI agents.",
+        "stars": 12,
+        "archived": false,
+        "updated_at": "2026-11-03T23:09:21Z",
+        "pushed_at": "2026-03-28T00:02:39Z",
+        "default_branch": "main",
+        "license": "Apache-2.0"
+      },
+      "borrow": "MCP prompts/tools、BM25、命名空间、多来源、缓存及来源信任层次。",
+      "limit": "发现/交付技能不等于执行；不默认启用远端 suggest graph。",
+      "readmeRead": true,
+      "audit": "documentation unless sourceAudits below explicitly lists source"
+    },
+    {
+      "repo": "intellectronica/skillz",
+      "url": "https://github.com/intellectronica/skillz",
+      "readmeUrl": "https://github.com/intellectronica/skillz/blob/main/README.md",
+      "readmeSha": "ccc5ca0668dcd06c4e0588b40973791a496fc719",
+      "metadata": {
+        "repo": "intellectronica/skillz",
+        "full_name": "intellectronica/skillz",
+        "description": "An MCP server for loading skills (shim for non-claude clients).",
+        "stars": 409,
+        "archived": false,
+        "updated_at": "2026-11-07T20:51:29Z",
+        "pushed_at": "2026-01-30T15:16:46Z",
+        "default_branch": "main",
+        "license": "MIT"
+      },
+      "borrow": "宿主无关 MCP、按需加载资料和辅助脚本。",
+      "limit": "PoC；不能把执行第三方脚本当隔离沙箱。",
+      "readmeRead": true,
+      "audit": "documentation unless sourceAudits below explicitly lists source"
+    },
+    {
+      "repo": "drfrog-coding/codex-skill-router",
+      "url": "https://github.com/drfrog-coding/codex-skill-router",
+      "readmeUrl": "https://github.com/drfrog-coding/codex-skill-router/blob/main/README.md",
+      "readmeSha": "20437f4c26fbbce435614a27da3288c79823d885",
+      "metadata": {
+        "repo": "drfrog-coding/codex-skill-router",
+        "full_name": "drfrog-coding/codex-skill-router",
+        "description": "Route Codex requests to installed skills and plugin skills",
+        "stars": 2,
+        "archived": false,
+        "updated_at": "2026-10-30T22:06:05Z",
+        "pushed_at": "2026-07-10T09:50:37Z",
+        "default_branch": "main",
+        "license": "MIT"
+      },
+      "borrow": "正触发/avoid_when/ask_user_when/combine_with；扫描本机与插件目录；宿主适配规则。",
+      "limit": "静态索引和提示规则不能保证触发；新项目不修改用户全局规则。",
+      "readmeRead": true,
+      "audit": "documentation unless sourceAudits below explicitly lists source"
+    },
+    {
+      "repo": "diet103/claude-code-infrastructure-showcase",
+      "url": "https://github.com/diet103/claude-code-infrastructure-showcase",
+      "readmeUrl": "https://github.com/diet103/claude-code-infrastructure-showcase/blob/main/README.md",
+      "readmeSha": "9c549332b8f519c3798e466c952dbb735157c6f6",
+      "metadata": {},
+      "borrow": "UserPromptSubmit/file context hooks；规则与 AI 分类可切换；运行健康检查。",
+      "limit": "项目声明是参考库非现成应用；bash hooks 在原生 PowerShell 不适用。",
+      "readmeRead": true,
+      "audit": "documentation unless sourceAudits below explicitly lists source"
+    },
+    {
+      "repo": "obra/superpowers",
+      "url": "https://github.com/obra/superpowers",
+      "readmeUrl": "https://github.com/obra/superpowers/blob/main/README.md",
+      "readmeSha": "c5bb59fdaf17ba154e803c549cd71a73ef36c24b",
+      "metadata": {
+        "repo": "obra/superpowers",
+        "full_name": "obra/superpowers",
+        "description": "An agentic skills framework & software development methodology that works.",
+        "stars": 318564,
+        "archived": false,
+        "updated_at": "2026-11-16T16:54:30Z",
+        "pushed_at": "2026-11-03T23:24:58Z",
+        "default_branch": "main",
+        "license": "MIT"
+      },
+      "borrow": "可组合技能与阶段化开发、执行后验证、诊断技能调用轨迹。",
+      "limit": "开发方法体系，不是通用检索运行时；只借鉴阶段/验证，不照搬审批和工作流。",
+      "readmeRead": true,
+      "audit": "documentation unless sourceAudits below explicitly lists source"
+    },
+    {
+      "repo": "jiayuww/SkillOrchestra",
+      "url": "https://github.com/jiayuww/SkillOrchestra",
+      "readmeUrl": "https://github.com/jiayuww/SkillOrchestra/blob/main/README.md",
+      "readmeSha": "f2327921a58e891896f874a330e20e85817e071a",
+      "metadata": {},
+      "borrow": "从执行轨迹提炼 skill handbook，按能力与成本选代理。",
+      "limit": "研究里的 skill 与 SKILL.md 包并不等价；学习调度和成本优势不可冒充本项目已有能力。",
+      "readmeRead": true,
+      "audit": "documentation unless sourceAudits below explicitly lists source"
+    },
+    {
+      "repo": "oneal2000/SR-Agents",
+      "url": "https://github.com/oneal2000/SR-Agents",
+      "readmeUrl": "https://github.com/oneal2000/SR-Agents/blob/main/README.md",
+      "readmeSha": "2048c2bbab76a1e75afa2665455aa8bd0533bcf4",
+      "metadata": {},
+      "borrow": "把 retrieval/incorporation/application 与最终任务表现分开；BM25+LLM rerank 基线、渐进披露。",
+      "limit": "大型研究评测；本项目先有本地小规模开发集，不宣称公开benchmark成绩。",
+      "readmeRead": true,
+      "audit": "documentation unless sourceAudits below explicitly lists source"
+    },
+    {
+      "repo": "GodsBoy/jev-agent-skill-router",
+      "url": "https://github.com/GodsBoy/jev-agent-skill-router",
+      "readmeUrl": "https://github.com/GodsBoy/jev-agent-skill-router/blob/main/README.md",
+      "readmeSha": "5083fac7fcb20ec0edd3713132e96ecc48d73b66",
+      "metadata": {},
+      "borrow": "类型化决策、明确置信与拒选；小型合成评测明确限制。",
+      "limit": "provider 专用；小合成数据不能说明生产准确率。",
+      "readmeRead": true,
+      "audit": "documentation unless sourceAudits below explicitly lists source"
+    },
+    {
+      "repo": "Dicklesworthstone/skillranker",
+      "url": "https://github.com/Dicklesworthstone/skillranker",
+      "readmeUrl": "https://github.com/Dicklesworthstone/skillranker/blob/main/README.md",
+      "readmeSha": "a7cbe8b20527b1139c46e69f8c9286fe09729226",
+      "metadata": {},
+      "borrow": "从当前会话/下一步语境做技能排序的思路。",
+      "limit": "仅阅读仓库说明；未运行、未审计其源码或指标。",
+      "readmeRead": true,
+      "audit": "documentation unless sourceAudits below explicitly lists source"
+    }
+  ],
+  "sourceAudits": [
+    {
+      "repo": "joshuadavidthomas/opencode-agent-skills",
+      "path": "src/embeddings.ts",
+      "finding": "MiniLM q8, threshold=.35, Top-K=5; embeddings cached by content SHA-256.",
+      "sha": "841d2129912bb9f0d0521a03d1ed0032d0800b05",
+      "url": "https://github.com/joshuadavidthomas/opencode-agent-skills/blob/main/src/embeddings.ts"
+    },
+    {
+      "repo": "joshuadavidthomas/opencode-agent-skills",
+      "path": "src/plugin.ts",
+      "finding": "Hook injects candidates; agent must decide and call use_skill; recommendation alone is not execution.",
+      "sha": "33bf2ed36bf2d51dbee0ccc4afef120bd22586c3",
+      "url": "https://github.com/joshuadavidthomas/opencode-agent-skills/blob/main/src/plugin.ts"
+    },
+    {
+      "repo": "joshuadavidthomas/opencode-agent-skills",
+      "path": "src/tools.ts",
+      "finding": "Separate load/read resource/run script tools; host-specific SDK injection and execution.",
+      "sha": "23c0266b32f059aaa7f5ca4f2c40a704e4fb2d0d",
+      "url": "https://github.com/joshuadavidthomas/opencode-agent-skills/blob/main/src/tools.ts"
+    },
+    {
+      "repo": "paulpas/agent-skill-router",
+      "path": "agent-skill-routing-system/src/core/Router.ts",
+      "finding": "Hybrid rerank with specificities/anti-triggers/MMR/intent decomposition.",
+      "sha": "28a6a199eb2241513b97dc034c5d3dc4e45b2d41",
+      "url": "https://github.com/paulpas/agent-skill-router/blob/main/agent-skill-routing-system/src/core/Router.ts"
+    },
+    {
+      "repo": "paulpas/agent-skill-router",
+      "path": "agent-skill-routing-system/src/core/ExecutionEngine.ts",
+      "finding": "Code inspection only: parallel loop queries nonexistent standard Promise.state; timeout race does not cancel underlying task. Do not copy.",
+      "sha": "1422befa979f551b249ce5549a12f0e0c7317e96",
+      "url": "https://github.com/paulpas/agent-skill-router/blob/main/agent-skill-routing-system/src/core/ExecutionEngine.ts"
+    },
+    {
+      "repo": "sowhan/skill-search",
+      "path": "skill_search/server.py",
+      "finding": "Incremental hash and staleness manifest; default embedded Qdrant locks directory.",
+      "sha": "1eee74907d2e3b9aa74f221e5d80a1a82b85606d",
+      "url": "https://github.com/sowhan/skill-search/blob/main/skill_search/server.py"
+    },
+    {
+      "repo": "drfrog-coding/codex-skill-router",
+      "path": "scripts/build_skill_routing.py",
+      "finding": "Usage/avoid/ask/combine extracts can enrich metadata without loading all bodies.",
+      "sha": "ba8537213a97fd37bd717324137feaf993451e11",
+      "url": "https://github.com/drfrog-coding/codex-skill-router/blob/main/scripts/build_skill_routing.py"
+    },
+    {
+      "repo": "legendtkl/agentic-skill-router",
+      "path": "src/auto-route.ts",
+      "finding": "Escalates low evidence or close/umbrella matches; preserves diagnostics.",
+      "sha": "5d69d42cebe2a1156f59a78d06cd336b6d14cf27",
+      "url": "https://github.com/legendtkl/agentic-skill-router/blob/main/src/auto-route.ts"
+    }
+  ],
+  "design": {
+    "name": "Skill Conductor",
+    "target": "Host-neutral skill routing/loading/execution middleware",
+    "interfaces": [
+      "Node.js SDK with user-provided async selector and executor callbacks",
+      "CLI",
+      "MCP stdio"
+    ],
+    "innovationCandidates": [
+      "基于任务、资料和工作阶段动态重新选择",
+      "可选依赖/能力与互斥技能检查",
+      "选择依据和候选/拒选的可追溯记录",
+      "activated/executed/verified 分离；后验验收由独立校验器提供"
+    ],
+    "noveltyStatus": "工程组合候选，未证明学术或市场独创，也未证明优于上游",
+    "reuseStrategy": "兼容现有 SKILL.md 和安装器，不建立新 skill 格式/marketplace。核心自己实现小型可复核中间件，借鉴设计并署名。无第三方代码复制。"
+  }
+}

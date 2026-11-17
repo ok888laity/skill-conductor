@@ -1,0 +1,7 @@
+{
+  "version": "0.1",
+  "triggers": ["在线文档", "live docs", "浏览器检查"],
+  "requiredCapabilities": ["web.browse"],
+  "conflicts": ["markdown-report"],
+  "whenToUse": "需要在线文档证据时；本 demo host 未声明 web.browse。"
+}

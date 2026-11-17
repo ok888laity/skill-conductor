@@ -1,0 +1,7 @@
+{
+  "version": "0.1",
+  "triggers": ["代码审查", "code review", "审查补丁", "review this code"],
+  "tags": ["review"],
+  "whenToUse": "用户提供代码或补丁并要求审查时。",
+  "notes": "Instruction package only; no script is declared."
+}

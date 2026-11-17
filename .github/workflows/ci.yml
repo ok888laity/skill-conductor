@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  offline:
+    name: Node ${{ matrix.node }} / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: ['20', '22', '24']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Offline project tests
+        run: npm test
+      - name: Offline lexical dev eval
+        run: node evals/run-eval.mjs
+      - name: Offline demo
+        run: node bin/skill-conductor.mjs demo
+      # Live integration is intentionally never run in CI: it needs a local
+      # OpenCode install, a model provider, and downloaded third-party skills.

@@ -1,0 +1,34 @@
+# Runtime output
+runs/
+examples/runs/
+runs-*/
+*.jsonl
+*.log
+coverage/
+tmp/
+
+# Test scratch space (created inside this project on purpose)
+.tmp-tests/
+
+# Local environment and secrets
+.env
+.env.*
+*.key
+*.pem
+service.json
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Local controller evidence and machine-specific setup
+controller-audit/
+examples/config.local-existing.json
+development*.log
+dist/
+integration-temp/
+integration-audit/
+release/
+release-staging/
+.DS_Store
+Thumbs.db
