@@ -2,7 +2,7 @@
   "schema": "skill-conductor/published-source-manifest/v1",
   "version": "0.3.0",
   "repository": "ok888laity/skill-conductor",
-  "preparedAt": "2026-11-17T07:43:35.224Z",
+  "preparedAt": "2026-11-17T07:52:00.088Z",
   "sourceFiles": 82,
   "exclusions": [
     "controller/developer audit folders",
@@ -169,9 +169,9 @@
     {
       "path": "docs/user-install-test-report.md",
       "mode": "100644",
-      "bytes": 3733,
-      "sha256": "2b1dd14bfad7dd3d8bbf6bb63214dc70e8cc770f888de47ac12f06af7ca0adf9",
-      "gitSha": "a6c31c45cfcf532cdaf0b61044e0ca671f766454"
+      "bytes": 3935,
+      "sha256": "49d588b2d3286eba18fe241612f435964d813e1019e065f369097c032094969e",
+      "gitSha": "10596a7527c2d03603b09fe0d6af69ee42a1faed"
     },
     {
       "path": "docs/user-install-test-results.json",
@@ -246,9 +246,9 @@
     {
       "path": "install.sh",
       "mode": "100755",
-      "bytes": 15044,
-      "sha256": "e16d8b650f4c68346646ba2d6847d67e72bd50d2713fa5005f8639df85c901c8",
-      "gitSha": "fc3f7007df020b35916ec5614e6f02e2a08f3f6c"
+      "bytes": 15210,
+      "sha256": "1f4d82061ea83ed17b31b1aa6225d4c866c61bcad1705c1a42b1e061f682a5a2",
+      "gitSha": "050e9dbacccf3de009420b0761c4921ea2a79044"
     },
     {
       "path": "package.json",

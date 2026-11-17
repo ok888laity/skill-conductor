@@ -185,6 +185,9 @@ extract_archive() {
   archive=$1
   destination=$2
   validate_archive_entries "$archive" 'Source archive'
+  assert_inside "$STAGE" "$destination" 'Archive extraction directory'
+  assert_no_symlink "$destination" 'Archive extraction directory'
+  mkdir -p -- "$destination"
   case "$archive" in
     *.zip)
       if command -v unzip >/dev/null 2>&1; then
