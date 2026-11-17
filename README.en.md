@@ -1,229 +1,179 @@
-# Skill Conductor — English quickstart
+# Skill Conductor
 
-Skill Conductor is a **host-neutral** Node.js component for discovering existing
-`SKILL.md` packages, routing natural-language work to them, asking the owner
-before use, and optionally executing explicitly trusted Node scripts or handing
-instructions to a host executor. It is not an OpenCode-only plugin. OpenCode is
-one optional selector/host adapter.
+**Let your current agent use the skills you already have when they help.** One-sentence installation prepares the required Node runtime automatically. Choose skills yourself or explicitly enable autonomous selection; connect through SDK or MCP.
 
-Default behavior is **ask**: routing produces candidates and a recommendation,
-persists a pending choice, and does not activate a skill body, run a script, or
-call a host executor. Autonomous mode is an explicit opt-in.
+The public user sentence is:
 
-Version 0.2.0 adds an **adaptive trigger gate** that is independent of the
-ask/auto approval policy. With task identity and host events, a cheap local
-assessment controls when discovery and selection run; ambiguous tasks use the
-documented cautious fallback.
-Per-task sessions add pending deduplication, no-match/skip suppression, a
-configurable expensive-check budget, failure thresholds, and cache/context reuse
-that never re-executes scripts. Full behavior, defaults and limitations:
-[`docs/adaptive-triggering.en.md`](docs/adaptive-triggering.en.md).
+```text
+Read https://raw.githubusercontent.com/ok888laity/skill-conductor/main/INSTALL.en.md and follow it to install and connect Skill Conductor, prepare its required environment automatically, use my existing skills with balanced triggering and owner confirmation, then continue my current task.
+```
 
-The [independent adaptive test report](docs/adaptive-test-report.md) and
-[machine-readable results](docs/adaptive-test-results.json) cover installed
-SDK/CLI/MCP checks, a fixed 20-event callback comparison (20 selections to 3),
-and real max-model selector integration. These are integration checks, not
-production accuracy, latency, or cost guarantees.
+The complete agent contract is in [`INSTALL.en.md`](INSTALL.en.md) (Chinese: [`INSTALL.md`](INSTALL.md)). Ordinary users do not run the demo, paste multiple commands, know npm/Node, choose skill roots, or need a second model subscription.
 
-The prior 0.1.1 onboarding evidence remains available in the
-[onboarding and four-domain test report](docs/onboarding-test-report.md) and
-[machine-readable results](docs/onboarding-test-results.json): 40 real skills,
-64 frozen development tasks, four audited native executions, and preserved failures.
+Independent installed-package checks, the real Windows no-Node bootstrap, and an actual OpenCode max recommendation from user skill directories are documented in the [user installation test report](docs/user-install-test-report.md). Other native desktop clients are clearly distinguished from their tested configuration and stdio interfaces.
 
-## Requirements
+## What it does
 
-Optional real-skill test setup and cleanup are documented in [docs/reproduce-live-tests.md](docs/reproduce-live-tests.md).
+1. Discovers **existing** project/user roots for Cursor, WorkBuddy/CodeBuddy, Qoder, DeepSeek Harness, OpenCode, Claude, Codex and shared `.agents/skills`.
+2. Creates a project-local `.skill-conductor/config.json` and preserves existing custom config. With no skills it reports `no_user_skills` honestly instead of installing demos.
+3. Merges only this product's MCP server into the chosen host's project config. Existing values/credentials are preserved and never printed; a conflicting server name is preserved and a stable unused name is allocated.
+4. Provides `doctor` / MCP `health` and real `list_skills` inventory: runtime, roots, skill counts and reload state.
+5. Defaults to **ask**: recommend to the owner, load bodies only after a real decision. `auto` is explicit. `assistance.enabled=false` always wins.
+6. Uses the current host model for semantic recommendation with no second API key: the host reads candidate metadata and submits exact IDs/reasons to `prepare_skills` for validation. A recommendation is not approval.
 
-- Node.js >= 20.11
-- No runtime dependencies
+## One-sentence install (performed by the agent)
 
-## Install and first run
+Windows PowerShell 5.1+:
 
-Node.js >= 20.11 is required (verified on Node 24.22.3 / npm 11.19.1). The bare
-npm registry name `skill-conductor` is **not available (E404)**; use the public
-GitHub HTTPS tarball instead of `npm install skill-conductor`.
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File install.ps1
+```
 
-One-shot run from any working directory (outputs stay in that directory):
+Linux / macOS:
 
 ```sh
-npx --yes --package=https://github.com/ok888laity/skill-conductor/archive/refs/heads/main.tar.gz skill-conductor demo
+sh install.sh
 ```
 
-Global install, then initialize and run:
+The installer puts the app under the project-owned `.skill-conductor/app`, reuses existing Node 20.11+ if available, otherwise downloads official Node 24.22.3 and verifies a pinned SHA256 into `.skill-conductor/runtime`. It needs no admin and does not edit PATH/profile/TEMP/global npm. Offline/controlled testing can use `-ArchivePath` / `--archive`. `setup` runs automatically; pass `-HostName` / `--host` to generate host config.
 
-```sh
-npm install --global https://github.com/ok888laity/skill-conductor/archive/refs/heads/main.tar.gz
-skill-conductor init --demo
-skill-conductor demo
+## First-run states
+
+| State | Meaning | Next step |
+| --- | --- | --- |
+| Missing runtime | Installer downloads and hash-verifies portable Node | Wait; no manual Node install |
+| `ready` | Valid user skills found | Generate/reload host MCP config, continue the task |
+| Host `configured` / `already_configured` | Project config written/already consistent | **Host reload/enable is required** |
+| `patch_required` | Existing JSONC/invalid JSON/non-owned DSH bundle preserved | Merge the generated patch; never fake "connected" |
+| `native_unverified` | DSH local bundle generated but not natively installed | Install with DSH tooling if available; otherwise require host activation |
+| `no_user_skills` | No existing skills found (empty catalog is not a demo) | Ask for `--root PATH` or a real SKILL.md root; do not install a demo |
+| `no_valid_user_skills` | SKILL.md files exist but metadata is unusable | Report concrete errors; do not pretend they work |
+
+`setup` is idempotent. The old product-owned demo-only config is backed up and migrated to real skill roots, preserving owner ask/auto, the assistance switch and frequency settings, while removing demo script trust. Demo files are never deleted.
+
+## Supported skill roots (bounded, on demand)
+
+Project: `.cursor/skills`, `.workbuddy/skills`, `.codebuddy/skills`, `.qoder/skills`, `.dsh/skills`, `.opencode/skills`, `.claude/skills`, `.codex/skills`, `.agents/skills`, `skills`.
+
+User: `~/.cursor/skills`, `~/.workbuddy/skills`, `~/.codebuddy/skills`, `~/.qoder/skills`, `~/.dsh/skills`, `~/.config/opencode/skills`, `~/.opencode/skills`, `~/.claude/skills`, `~/.codex/skills`, `~/.agents/skills`; on Windows also `%APPDATA%/opencode/skills`. Codex plugin caches are searched only for bounded `skills` directories.
+
+- No whole-disk scan, no third-party skill installation/execution, no packaged demo root by default.
+- Real-path dedupe, preserved host/scope provenance and stable namespaces/IDs.
+- Hidden skill directories are detected in known roots; explicit `--include-hidden` is also supported.
+- Newly discovered roots are always `trusted:false`; existing root trust is never granted by discovery.
+
+## Platform and host support matrix
+
+The columns keep three things separate: **official schema** (generated from documented fields), **repository protocol test** (actually launching the generated command+args and completing MCP stdio initialize/tools/list), and **native app verification** (whether the desktop/CLI app was really opened and driven). If not observed, it is not claimed.
+
+| Host | Project config | Official schema | Stdio protocol test here | Native app |
+| --- | --- | --- | --- | --- |
+| Cursor | `.cursor/mcp.json`, `mcpServers` | Yes | Yes (launched generated command) | **Not claimed**; this environment did not drive Cursor desktop |
+| WorkBuddy / CodeBuddy | `.workbuddy/mcp.json`, `mcpServers` | Yes | Yes | **Not claimed**; no WorkBuddy CLI on this machine |
+| Qoder | `.mcp.json`; documented `.qoder/settings.json` too | Yes | Yes (Qoder CLI project config; IDE reload separate) | **Not claimed** |
+| DeepSeek Harness | `.skill-conductor/integrations/deepseek-harness/`: `cordis.patch.yml` + `package.json` | Yes (Cordis `- insert:` patch + `dsh.bundle.patch`) | Yes (handshake from generated fields) | **Not claimed**; no native plugin install |
+| OpenCode | `opencode.json`, `mcp.servers` | Yes | Yes (legacy structure) | 0.2.x was native-tested on 2.2.7/2.3.0; not re-claimed this round |
+| Generic SDK / MCP | `.skill-conductor/mcp.json` stdio descriptor | Yes (generic protocol) | Yes | Not a native app connector |
+
+DeepSeek Harness gets an **installable local bundle**, not `mcpServers` forced into Cordis. Mark it native only if the target DSH actually loads the bundle; otherwise report schema/protocol plus `native_unverified`. See [`docs/platform-support.md`](docs/platform-support.md) for the detailed evidence boundaries.
+
+Operating systems: Windows (PowerShell 5.1+) and Linux (POSIX sh) have local/CI coverage. macOS has the `install.sh` entrypoint but was not run natively in this environment, so no macOS native claim. CI is Windows/Linux + Node 20/22/24, offline by default.
+
+## Owner CLI
+
+```text
+skill-conductor setup [--host cursor|workbuddy|qoder|deepseek-harness|opencode|generic]
+    [--root PATH ...] [--include-hidden] [--verify-host] [--no-host-config] [--config PATH]
+skill-conductor doctor [--config PATH]
+skill-conductor list [--config PATH]
+skill-conductor route TASK [--config PATH] [--material FILE ...] [--phase X] [--recommend FILE]
+skill-conductor run TASK [--config PATH] [--material FILE ...] [--phase X] [--mode ask|auto]
+skill-conductor choose RUN_ID [--config PATH] (--skills ID,ID | --skip) [--activate-only]
+skill-conductor show RUN_ID [--config PATH]
+skill-conductor runs [--config PATH]
+skill-conductor settings show|set ... [--config PATH]
+skill-conductor interactive [--config PATH]
+skill-conductor mcp [--config PATH]
 ```
 
-`init` writes `.skill-conductor/config.json` and an empty `./skills` root in the
-current directory, keeps policy at `ask`, and leaves `execution.enabled=false`
-(no script is trusted). `init --root PATH` uses an existing skill root. Existing
-files are never overwritten. `init --demo` copies the four bundled first-party
-demo skills and the synthetic CSV into `.skill-conductor/demo/` and trusts only
-`demo:csv-inspector` and `demo:markdown-report`; policy is still `ask`, and the
-`demo` command itself is the explicit auto opt-in.
+- `setup`: discover/migrate/generate host config; idempotent; never overwrites custom config.
+- `doctor`: read-only health; no demo, activation or script execution.
+- `list`: real metadata; an empty catalog returns `status:"no_user_skills"`.
+- `route`: recommendation only; ask mode loads no body and executes nothing.
+- `run`: returns pending in ask; after owner `choose` it follows the persisted intent.
+- `mcp`: stdio JSON-RPC; stdout is protocol-only, diagnostics go to stderr.
+- Without init, `list`/`route`/`run`/`interactive`/`doctor`/MCP start creates a local user-skill config and reports status on stderr, with no demo copy.
 
-Installed commands search for `.skill-conductor/config.json` and then
-`skill-conductor.config.json` from the working directory upward. An explicit
-`--config PATH` always wins. `demo` also works without init, but its runs and
-artifacts go to `.skill-conductor/runs/` under the caller, never into the
-installed package. With an explicit config, that config's `execution.runDir` is
-preserved.
-
-## Quickstart from the source tree (offline demo)
-
-```sh
-node bin/skill-conductor.mjs init --demo
-node bin/skill-conductor.mjs demo
-```
-
-The demo executes two explicitly trusted demo scripts and independently
-verifies the CSV row count and totals. It does not call a model.
-
-## Route first, then choose
-
-```sh
-node bin/skill-conductor.mjs route "分析这个 CSV 并生成 Markdown 报告" \
-  --config examples/config.demo.json --material "data/销售 数据.csv"
-node bin/skill-conductor.mjs choose <runId> \
-  --config examples/config.demo.json --skills demo:csv-inspector,demo:markdown-report
-```
-
-`route` and ask-mode `run` return `awaiting_choice` when a skill is applicable.
-A separate trusted owner action (`choose`, an owned UI, or SDK `chooseRun`) must
-decide. Model output is a recommendation, never approval. If the selector
-abstains, the terminal status is `no_match` with candidates/abstainReason
-preserved; it is not an empty approval prompt.
-
-## Adaptive triggering in one minute
-
-`assistance.enabled` is the owner total switch. When false, `prepareTask` returns
-`status: "disabled"` **before** reading materials, scanning catalogs, or calling
-selectors/executors; `chooseRun`, `resumeRun` and MCP activation cannot bypass it.
-History stays readable. This is independent of `policy.mode` ask/auto.
-
-Profiles are `manual`, `conservative`, `balanced` (default), `proactive` and
-`custom`. Without `taskId`, documented v0.1 one-shot behavior is preserved.
-With an explicit `taskId` and event:
-
-```js
-const { run, pendingChoice, trigger } = await prepareTask({
-  config,
-  task: 'continue organising this material',
-  taskId: 'task-2026-001',
-  sessionId: 'host-session-7',
-  event: 'routine_continuation', // or new_task, phase_change, ... manual_request
-  phase: 'summarize',
-  activity: { needsSkill: false, requirementsKey: 'summary-v1' },
-  selector,
-});
-```
-
-Task state is scoped by workspace + `sessionId` + `taskId`; the same taskId in a
-new session starts a fresh check and never inherits skip, pending, no_match,
-context or budget. `init` stores only `enabled`/`profile`, so switching profile
-applies that preset instead of being blocked by pinned balanced defaults.
-
-Same-phase routine steps with an activated decision return `status:"reused"`,
-`sourceRunId` and existing `context`, with `executedForThisEvent:false`; no
-selector or script runs. Same-format new input reuses the skill choice but never
-treats old computed output as a new result. Material/requirements/phase changes,
-changed skill/script hashes, config/trust changes or catalog root changes
-invalidate the cache. An unchanged pending request returns the same run without
-a duplicate prompt. A skip suppresses the current phase; a real `no_match` is
-suppressed for unchanged continuations.
-
-Owner settings CLI only:
-
-```sh
-node bin/skill-conductor.mjs settings show --config .skill-conductor/config.json
-node bin/skill-conductor.mjs settings set assistance.enabled false --config .skill-conductor/config.json
-node bin/skill-conductor.mjs settings set assistance.profile conservative --config .skill-conductor/config.json
-```
-
-MCP exposes task event data but no settings, approval or switch-to-auto tool. A
-running MCP process reloads trusted config on every `tools/call`.
-
-Reproducible counters (synthetic callback, not live accuracy):
-
-```sh
-node examples/adaptive-event-sequence.mjs
-```
-
-## SDK
-
-```js
-import { loadConfig, prepareTask, chooseRun, verifyRun } from './src/index.mjs';
-
-const config = await loadConfig('examples/config.demo.json');
-const prepared = await prepareTask({
-  config,
-  task: 'inspect this CSV and write a report',
-  taskId: 'task-2026-001',
-  event: 'new_task',
-  files: ['data/销售 数据.csv'],
-  mode: 'ask',
-});
-
-// Show prepared.pendingChoice to the owner. After a real decision:
-const run = await chooseRun({
-  config,
-  runId: prepared.run.runId,
-  skills: ['demo:csv-inspector', 'demo:markdown-report'],
-  decisionToken: prepared.run.planHash,
-});
-
-// Verification must independently inspect the output. Execution alone is not
-// verification. See README.md for a CSV recomputation example.
-```
-
-Custom selector and host executor callbacks are documented in
-[`docs/host-integration.md`](docs/host-integration.md) and
-[`examples/`](examples/).
-
-## Configuration sketch
+`--recommend FILE` is the host-agent recommendation path:
 
 ```json
 {
-  "roots": [{ "path": "../skills", "namespace": "demo", "trusted": true }],
-  "selector": { "mode": "lexical" },
-  "policy": { "mode": "ask" },
-  "assistance": {
-    "enabled": true,
-    "profile": "balanced"
-  },
-  "capabilities": ["filesystem.read", "filesystem.write"],
-  "execution": {
-    "enabled": false,
-    "trustedSkillIds": [],
-    "runDir": "../runs"
-  },
-  "materials": { "allowRoots": [".."] }
+  "selected": [
+    { "id": "cursor-project:sales-report", "reason": "English description matches the Chinese sales-report need", "confidence": 0.92 }
+  ]
 }
 ```
 
-Selector modes are `lexical` (offline, explicitly not semantic), `http`
-(OpenAI chat-completions-compatible endpoint), `opencode` (optional CLI
-adapter), or an SDK callback. Paths are resolved relative to the config file.
+Only exact current catalog IDs are accepted; unknown/duplicate/blocked/over-limit/invalid fields fail explicitly. It is not approval, settings or trust.
 
-## What this project does not claim
+## MCP stdio and current-host intelligence
 
-- No accuracy benchmark or held-out evaluation is published.
-- A loaded `SKILL.md` is an instruction package, not a callable function.
-- Activation, execution, and independent verification are separate states.
-- Trusted script execution is not an OS sandbox.
-- Third-party skill packages used during development testing are not vendored.
+```powershell
+node bin\skill-conductor.mjs mcp --config .skill-conductor\config.json
+```
+
+Minimal newline-delimited JSON-RPC 2.0: `initialize`, `notifications/initialized`, `tools/list`, `tools/call`, `ping`. Tools:
+
+- `health`: runtime, config, roots, skill counts and host config/reload state;
+- `list_skills`: real user-skill inventory;
+- `prepare_skills`: recommendation/routing, with optional `recommendation`;
+- `get_run`, `activate_run`, `read_resource`.
+
+There is no `approve` / `decide` / `set_mode` / `update_settings` tool. Approval and settings belong to the owner CLI or trusted host UI. Recommendation flow: the host reads `list_skills` metadata, then its current model submits exact IDs/reasons in `prepare_skills.recommendation`. A Chinese request can choose an English-described existing skill with no extra OpenCode or paid key. `initialize.instructions` repeats this contract.
+
+Every `tools/call` reloads trusted config. After the owner disables `assistance.enabled`, the running MCP returns `disabled` on the next request. Autonomous execution through MCP also requires both `mcp.allowExecution` and `execution.enabled`; otherwise it only routes/activates.
+
+## Safety boundaries
+
+- Default ask; `auto` requires explicit config or explicit CLI/SDK authorization. Empty input, timeout and model output are not approval.
+- `assistance.enabled=false` short-circuits before materials, catalog scanning, selectors or MCP recommendation.
+- Activation, execution and independent verification are separate. `activated`/`handoff` is not execution success.
+- Only Node entries with `execution.enabled=true` and an explicit trusted ID/allowlist run. `shell:false`, timeout kills the process tree, output/artifacts are bounded. This is not an OS sandbox.
+- Materials are explicit read-only files and are DATA, not authorization. URLs are not fetched.
+- Discovery reads metadata only and executes no skill scripts. Skill-specific dependencies/credentials are checked when actually used and reported honestly.
+- No global user config, existing skills or other sessions are modified. Installers/generators write only project-local `.skill-conductor`, the selected project host config and necessary backups.
+
+## Tests and known limits
+
+```powershell
+node --test tests\foundation.test.mjs tests\runtime.test.mjs tests\adaptive.test.mjs tests\mcp-cli.test.mjs tests\process-cleanup.test.mjs tests\http-selector.test.mjs tests\onboarding-cli.test.mjs tests\onboarding-setup.test.mjs
+node evals\run-eval.mjs
+```
+
+- Offline tests cover discovery/dedupe/provenance/hidden roots, honest empty catalog, old demo migration/backup, custom config preservation, MCP first-run config, `health`, host JSON merge/credential non-disclosure/real stdio handshake, MCP name-collision preservation, DSH `- insert:` bundle, JSONC patch, host recommendation choosing a real user skill, unknown/blocked rejection, and installer local archive/hash failure/traversal rejection.
+- `evals/run-eval.mjs` is an offline **synthetic-lexical-fixtures** development check, not semantic accuracy, a model benchmark or a production guarantee.
+- No accuracy benchmark is published; semantic quality depends on the host model.
+- `http` / `opencode` adapters remain optional, not user prerequisites; this round does not re-claim live model quality.
+- No automatic learning, feedback-based skill rewriting, web UI or complete MCP SDK.
+- macOS has a script entrypoint but was not run natively here; other desktop clients were not automatically native-tested.
 
 ## Docs
 
-- Chinese README: [`README.md`](README.md)
-- Adaptive triggering (English): [`docs/adaptive-triggering.en.md`](docs/adaptive-triggering.en.md)
-- Host integration: [`docs/host-integration.md`](docs/host-integration.md)
-- Live development-testing report: [`docs/live-integration.md`](docs/live-integration.md)
-- Attribution: [`ATTRIBUTION.md`](ATTRIBUTION.md)
-- License: MIT, see [`LICENSE`](LICENSE)
+- Agent install contract: [INSTALL.en.md](INSTALL.en.md)
+- Host/MCP integration and DSH bundle: [docs/host-integration.md](docs/host-integration.md)
+- Platform matrix and evidence boundaries: [docs/platform-support.md](docs/platform-support.md)
+- Adaptive triggering: [docs/adaptive-triggering.en.md](docs/adaptive-triggering.en.md)
+- Attribution: [ATTRIBUTION.md](ATTRIBUTION.md)
 
-Repository metadata (`OWNER/REPO`, description, topics) is filled by the
-controller before the first public release.
+## Optional demo and developer checks (not normal onboarding)
+
+```powershell
+node bin\skill-conductor.mjs demo
+node bin\skill-conductor.mjs init --demo
+```
+
+The demo uses bundled first-party example skills and a synthetic CSV, runs two trusted scripts with explicit auto and independently rechecks the numbers. It calls no model. `setup` never runs the demo and never adds demo roots to the default user catalog.
+
+## Sources and license
+
+MIT. Design references, sources and trade-offs are in [ATTRIBUTION.md](ATTRIBUTION.md) and `research/upstream-review.json`. This is an engineering composition, not an academic novelty claim, and passing tests are not presented as production accuracy.

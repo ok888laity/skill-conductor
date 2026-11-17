@@ -136,10 +136,32 @@ export interface RunRecord {
   [key: string]: unknown;
 }
 
+export interface RootSource {
+  kind: string;
+  host?: string | null;
+  scope?: string | null;
+  declaredPath?: string | null;
+}
+
+export interface SetupMetadata {
+  managedBy: string | null;
+  schema: string | null;
+  version: string | null;
+  rootsMode: string | null;
+  lastHost: string | null;
+  updatedAt: string | null;
+}
+
 export interface ConductorConfig {
   baseDir: string;
   configPath: string | null;
-  roots: Array<{ path: string; namespace: string; trusted: boolean; includeHidden: boolean }>;
+  roots: Array<{
+    path: string;
+    namespace: string;
+    trusted: boolean;
+    includeHidden: boolean;
+    source?: RootSource | null;
+  }>;
   selector: {
     mode: 'lexical' | 'http' | 'opencode';
     maxCandidates: number;
@@ -175,9 +197,16 @@ export interface ConductorConfig {
     allowRoots: string[];
   };
   mcp: { allowExecution: boolean; maxInputBytes: number };
+  setup?: SetupMetadata;
   fingerprint: string;
   warnings: string[];
   [key: string]: unknown;
+}
+
+export interface HostRecommendation {
+  selected: Array<{ id: string; reason: string; confidence: number }>;
+  abstainReason?: string | null;
+  steps?: Array<{ id?: string; skillId: string; dependsOn?: string[] }>;
 }
 
 export type SelectorCallback = (input: {
@@ -231,6 +260,8 @@ export function prepareTask(input: {
   event?: TriggerEvent | null;
   /** Host event signals only; no agent-observation telemetry is invented. */
   activity?: HostActivity | null;
+  /** Host-agent recommendation. Exact catalog IDs only; never approval, settings or trust. */
+  recommendation?: HostRecommendation | null;
 }): Promise<{ run: RunRecord; pendingChoice: PendingChoice | null; trigger: TriggerExplanation }>;
 
 export function chooseRun(input: {
@@ -267,6 +298,107 @@ export function listRuns(input: { config: ConductorConfig }): Promise<Array<Reco
 export function loadRunContext(input: { config: ConductorConfig; runId: string }): Promise<Record<string, unknown>>;
 
 export function startMcpServer(input: { config: ConductorConfig }): Promise<void>;
+
+export interface DiscoveredRoot {
+  path: string;
+  namespace: string;
+  trusted: boolean;
+  includeHidden: boolean;
+  source: RootSource;
+}
+
+export interface SetupReport {
+  ok: boolean;
+  command: 'setup';
+  version: string;
+  setupStatus: string;
+  status: string;
+  readyForRealTasks: boolean;
+  changed: boolean;
+  created: boolean;
+  configPath: string;
+  config?: Record<string, unknown>;
+  runtime?: Record<string, unknown>;
+  roots?: Array<Record<string, unknown>>;
+  catalog?: { status: string; counts: Record<string, number>; catalogHash: string };
+  nextAction?: string | null;
+  hostIntegration?: HostIntegrationResult | null;
+  [key: string]: unknown;
+}
+
+export interface HostIntegrationResult {
+  host: string;
+  label: string;
+  status: 'configured' | 'already_configured' | 'patch_required' | 'native_unverified';
+  nativeVerified: false;
+  verification: string;
+  configPath: string;
+  packagePath?: string;
+  bundlePath?: string;
+  patchPath?: string;
+  serverName?: string;
+  changed: boolean;
+  reloadRequired: boolean;
+  reload?: string;
+  message?: string;
+  [key: string]: unknown;
+}
+
+export function discoverUserRoots(input?: {
+  cwd?: string;
+  homeDir?: string | null;
+  env?: Record<string, string | undefined>;
+  host?: string | null;
+  extraRoots?: string[];
+  includeHidden?: boolean;
+}): Promise<{
+  roots: DiscoveredRoot[];
+  skipped: Array<Record<string, unknown>>;
+  issues: string[];
+  selectedHost: string | null;
+  homeDir: string;
+  discovery: Record<string, unknown>;
+}>;
+
+export function applySetup(input?: {
+  cwd?: string;
+  homeDir?: string | null;
+  env?: Record<string, string | undefined>;
+  host?: string | null;
+  extraRoots?: string[];
+  configPath?: string | null;
+  includeHidden?: boolean;
+  now?: Date;
+}): Promise<SetupReport>;
+
+export function doctorReport(input: {
+  config: ConductorConfig;
+  cwd?: string;
+  state?: Record<string, unknown> | null;
+}): Promise<Record<string, unknown>>;
+
+export function readSetupState(configPath: string | null): Promise<Record<string, unknown> | null>;
+export function normalizeHostName(value: string | null | undefined): string | null;
+export function generateHostIntegration(input: {
+  host: string;
+  cwd?: string;
+  configPath: string;
+  nodePath?: string;
+  cliPath?: string;
+  now?: Date;
+}): Promise<HostIntegrationResult>;
+export function inspectHostIntegrations(input?: { cwd?: string }): Promise<Array<Record<string, unknown>>>;
+export function verifyHostIntegration(input: {
+  host: string;
+  cwd?: string;
+  timeoutMs?: number;
+}): Promise<Record<string, unknown>>;
+export function parseCordisCommand(text: string): { command: string; args: string[] } | null;
+export const PRODUCT_VERSION: string;
+export const MIN_NODE_VERSION: string;
+export const SETUP_SCHEMA: string;
+export const HOSTS: Record<string, Record<string, unknown>>;
+export function hostInfo(host: string): Record<string, unknown>;
 
 export const ASSISTANCE_PROFILES: readonly AssistanceProfile[];
 export const TRIGGER_EVENTS: readonly TriggerEvent[];

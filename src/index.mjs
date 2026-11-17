@@ -81,6 +81,30 @@ export {
 export { startMcpServer } from './mcp.mjs';
 
 export {
+  PRODUCT_VERSION,
+  MIN_NODE_VERSION,
+  SETUP_SCHEMA,
+  HOST_ALIASES,
+  HOST_LABELS,
+  normalizeHostName,
+  discoverUserRoots,
+  applySetup,
+  doctorReport,
+  readSetupState,
+  looksLikeDemoScaffold,
+  catalogHealth,
+} from './onboarding.mjs';
+
+export {
+  HOSTS,
+  hostInfo,
+  generateHostIntegration,
+  inspectHostIntegrations,
+  verifyHostIntegration,
+  parseCordisCommand,
+} from './host-integration.mjs';
+
+export {
   ConductorError,
   ConfigError,
   CatalogError,

@@ -1,15 +1,24 @@
 import readline from 'node:readline';
 import { loadConfig } from './config.mjs';
 import { toErrorObject } from './errors.mjs';
+import { inspectHostIntegrations } from './host-integration.mjs';
+import { doctorReport } from './onboarding.mjs';
 import { getRun, listSkills, pendingView, prepareTask, resumeRun } from './router.mjs';
 
 const PROTOCOL_VERSION = '2024-11-05';
-const SERVER_INFO = { name: 'skill-conductor', version: '0.2.0' };
+const SERVER_INFO = { name: 'skill-conductor', version: '0.3.0' };
 
 const TOOLS = [
   {
     name: 'list_skills',
-    description: 'Discover SKILL.md metadata from configured roots. Read-only; no bodies or scripts.',
+    description:
+      'Discover existing user SKILL.md metadata from configured roots. Read-only; no bodies, scripts or demo fallback. Returns status no_user_skills when the catalog is deliberately empty.',
+    inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+  },
+  {
+    name: 'health',
+    description:
+      'Read-only first-run health: Node runtime, config/roots, skill counts, setup state and host integration/reload status. Never runs a demo or a skill.',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
   },
   {
@@ -54,6 +63,32 @@ const TOOLS = [
             hint: { type: 'string' },
           },
           additionalProperties: true,
+        },
+        recommendation: {
+          type: 'object',
+          description:
+            'Optional host-agent recommendation after the host reads real candidate metadata. Exact catalog IDs only; it is a recommendation, never approval, settings or trust. Unknown/blocked IDs are rejected.',
+          properties: {
+            selected: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  reason: { type: 'string' },
+                  confidence: { type: 'number', minimum: 0, maximum: 1 },
+                },
+                required: ['id', 'reason', 'confidence'],
+                additionalProperties: false,
+              },
+            },
+            abstainReason: {
+              type: 'string',
+              description: 'Use only when selected is empty. Omit this field when recommending skills; put explanations in each selected item reason.',
+            },
+            steps: { type: 'array', items: { type: 'object' } },
+          },
+          additionalProperties: false,
         },
       },
       required: ['task'],
@@ -124,6 +159,7 @@ const PREPARE_KEYS = new Set([
   'sessionId',
   'event',
   'activity',
+  'recommendation',
 ]);
 const PREPARE_EVENTS = new Set([
   'new_task',
@@ -176,11 +212,33 @@ function validatePrepareArgs(args) {
       return { error: 'invalid_arguments', message: 'activity must be an object' };
     }
   }
+  if (args.recommendation !== undefined) {
+    if (!args.recommendation || typeof args.recommendation !== 'object' || Array.isArray(args.recommendation)) {
+      return { error: 'invalid_arguments', message: 'recommendation must be an object' };
+    }
+    const unsupportedRecommendation = Object.keys(args.recommendation).filter(
+      (key) => !['selected', 'abstainReason', 'steps'].includes(key),
+    );
+    if (unsupportedRecommendation.length > 0) {
+      return {
+        error: 'unsupported_arguments',
+        unsupported: unsupportedRecommendation.map((key) => `recommendation.${key}`),
+        message: 'recommendation accepts only selected, abstainReason and steps',
+      };
+    }
+  }
   return null;
 }
 
 async function callTool(config, name, args) {
   if (name === 'list_skills') return textResult(await listSkills({ config }));
+  if (name === 'health') {
+    const report = await doctorReport({ config });
+    return textResult({
+      ...report,
+      hostIntegrations: await inspectHostIntegrations({ cwd: process.cwd() }),
+    });
+  }
   if (name === 'prepare_skills') {
     const invalid = validatePrepareArgs(args);
     if (invalid) return textResult(invalid, true);
@@ -198,6 +256,7 @@ async function callTool(config, name, args) {
       // MCP execution requires an explicit mcp.allowExecution opt-in; otherwise a
       // trusted auto config may route/activate but must not run scripts.
       intent: config.mcp.allowExecution && config.execution.enabled ? 'run' : 'route',
+      recommendation: args.recommendation ?? null,
     });
     return textResult({ ...(result.pendingChoice ?? result.run), ...(result.trigger ? { trigger: result.trigger } : {}) });
   }
@@ -280,6 +339,8 @@ export async function startMcpServer({ config }) {
             protocolVersion: PROTOCOL_VERSION,
             capabilities: { tools: { listChanged: false } },
             serverInfo: SERVER_INFO,
+            instructions:
+              'After installation, call health once. Apply the configured assistance profile and a cheap local assessment before seeking skills: skip routine steps and obvious small tasks. Read list_skills only when a specialized capability lookup or a material catalog change justifies it; cache metadata within the task rather than calling health/list on every step. Respect current host permissions and native disabled-skill settings; filesystem discovery never re-enables a disabled native skill. Use the current host model without another API key and call prepare_skills with recommendation {selected:[{id,reason,confidence}]} using exact IDs and stable taskId/events. When selected is nonempty, omit abstainReason; use it only with an empty selected array. Validation/list errors are explicit. A recommendation never changes owner approval, settings or trust. Ask remains the default; show new pending choices to the user.',
           },
         });
         return;

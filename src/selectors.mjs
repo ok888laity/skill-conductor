@@ -301,6 +301,103 @@ async function selectWithOpenCode({ config, prompt }) {
 }
 
 
+function candidateFromHostSkill(skill, config, entryReason) {
+  const capabilities = new Set(config.capabilities);
+  const missingCapabilities = skill.requiredCapabilities.filter((capability) => !capabilities.has(capability));
+  const invalidReasons = [];
+  if (!skill.valid) invalidReasons.push('SKILL.md metadata is invalid');
+  if (!skill.name) invalidReasons.push('SKILL.md has no usable name');
+  const blockers = [
+    ...missingCapabilities.map((capability) => `missing capability: ${capability}`),
+    ...invalidReasons,
+  ];
+  return {
+    id: skill.id,
+    name: skill.name,
+    description: skill.description,
+    tags: skill.tags,
+    triggers: skill.triggers,
+    avoidTriggers: skill.avoidTriggers,
+    whenToUse: skill.whenToUse,
+    score: 0,
+    confidence: entryReason?.confidence ?? 0,
+    matchedFields: [],
+    matchedTokens: [],
+    reasons: [`host-supplied recommendation: ${entryReason?.reason ?? 'host agent selected this skill'}`],
+    blocked: blockers.length > 0,
+    blockers,
+    missingCapabilities,
+    requiredCapabilities: skill.requiredCapabilities,
+    dependencies: skill.dependencies,
+    conflicts: skill.conflicts,
+    resources: skill.resources,
+    executable: skill.executable ? { name: skill.executable.name } : null,
+    rootTrusted: skill.rootTrusted,
+    ambiguousName: skill.ambiguousName,
+    sha256: skill.sha256,
+    sidecarSha256: skill.sidecarSha256 ?? null,
+    offeredBecause: 'host-recommendation',
+  };
+}
+
+/**
+ * Add metadata for host-selected catalog IDs that lexical prefiltering did not
+ * place in the roster. Unknown IDs are left out so validateSelection rejects
+ * them explicitly; this function never creates fake skills.
+ */
+export function appendHostRecommendationCandidates(ranking, recommendation, config, catalog) {
+  const selected = Array.isArray(recommendation?.selected) ? recommendation.selected : [];
+  const existing = new Set(ranking.candidates.map((candidate) => candidate.id));
+  const candidates = [...ranking.candidates];
+  for (const entry of selected) {
+    if (!entry || typeof entry.id !== 'string' || existing.has(entry.id)) continue;
+    const skill = catalog.byId.get(entry.id);
+    if (!skill) continue;
+    candidates.push(candidateFromHostSkill(skill, config, entry));
+    existing.add(entry.id);
+  }
+  return {
+    ...ranking,
+    candidates,
+    diagnostics: {
+      ...(ranking.diagnostics ?? {}),
+      hostRecommendation: {
+        selectedIds: selected.map((entry) => entry?.id).filter((id) => typeof id === 'string'),
+        appendedCandidates: candidates.length - ranking.candidates.length,
+        note: 'Host-supplied recommendation metadata; not an approval.',
+      },
+    },
+  };
+}
+
+/**
+ * Validate a host-agent recommendation with the same candidate/ID/step rules as
+ * other selectors. It remains a recommendation only: approval and trust still
+ * come from the owner policy and separate decision path.
+ */
+export function selectHostRecommendation({ recommendation, config, catalog, ranking }) {
+  let validated;
+  try {
+    validated = validateSelection(recommendation, {
+      candidates: ranking.candidates,
+      maxSelection: config.selector.maxSelection,
+      catalog,
+      label: 'host-supplied',
+    });
+  } catch (error) {
+    if (error instanceof SelectorError) throw error;
+    throw new SelectorError(`host recommendation is invalid: ${error.message}`);
+  }
+  return {
+    ...validated,
+    mode: 'host',
+    semantic: true,
+    label: 'host-supplied',
+    provider: { source: 'host-agent' },
+    note: 'Host-supplied recommendation only. It does not approve a plan, change settings or grant execution trust.',
+  };
+}
+
 function parseProviderSelection(text, { candidates, maxSelection, catalog, label }) {
   const raw = extractSelectionJson(text);
   if (!raw) {

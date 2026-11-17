@@ -125,10 +125,22 @@ test('default demo needs no init and writes outside the installed package', asyn
   assert.equal(await fs.stat(path.join(result.artifactDir, 'report.md')).then(() => true), true);
 });
 
-test('a missing config produces an actionable error instead of reading global state', async (t) => {
+test('a missing config creates a local user-skill config without demo fallback', async (t) => {
   const dir = await makeTempDir(t, 'no config 中文');
-  const result = await runCli(['route', '请计算'], { cwd: dir });
-  assert.notEqual(result.code, 0);
-  assert.match(result.stderr, /no skill-conductor config found/i);
-  assert.match(result.stderr, /init --demo|--config PATH/i);
+  const fakeHome = path.join(dir, 'empty home');
+  await fs.mkdir(fakeHome, { recursive: true });
+  const project = path.join(dir, 'project');
+  await fs.mkdir(project, { recursive: true });
+  const result = await runCli(['route', '请计算', '--home', fakeHome], { cwd: project });
+  assert.equal(result.code, 0, result.stderr);
+  const run = JSON.parse(result.stdout);
+  assert.equal(run.status, 'no_match');
+  assert.match(run.recommendation.abstainReason, /no_user_skills/i);
+  assert.match(result.stderr, /no config found/i);
+  assert.match(result.stderr, /no_user_skills/i);
+  const configPath = path.join(project, '.skill-conductor', 'config.json');
+  const config = JSON.parse(await fs.readFile(configPath, 'utf8'));
+  assert.deepEqual(config.roots, []);
+  assert.equal(config.setup.managedBy, 'skill-conductor');
+  assert.equal(await fs.stat(path.join(project, '.skill-conductor', 'demo')).then(() => true).catch(() => false), false);
 });

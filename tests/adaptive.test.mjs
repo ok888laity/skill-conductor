@@ -968,7 +968,7 @@ test('MCP hot-reloads the owner switch, handles events, and rejects settings mut
       capabilities: {},
       clientInfo: { name: 'adaptive-test', version: '0' },
     });
-    assert.equal(init.result.serverInfo.version, '0.2.0');
+    assert.equal(init.result.serverInfo.version, '0.3.0');
     client.notify('notifications/initialized', {});
 
     const list = await client.request('tools/list', {});

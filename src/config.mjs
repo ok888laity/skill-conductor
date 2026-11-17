@@ -45,9 +45,30 @@ function safeNamespace(value, fallback) {
   return raw;
 }
 
+function normalizeRootSource(value, index) {
+  if (value === undefined || value === null) return null;
+  if (!isObject(value)) throw new ConfigError(`roots[${index}].source must be an object`);
+  const text = (field) => {
+    const raw = value[field];
+    if (raw === undefined || raw === null) return null;
+    if (typeof raw !== 'string' || raw.trim() === '') {
+      throw new ConfigError(`roots[${index}].source.${field} must be a non-empty string`);
+    }
+    return raw.trim();
+  };
+  return {
+    kind: text('kind') ?? 'discovered',
+    host: text('host'),
+    scope: text('scope'),
+    declaredPath: text('declaredPath'),
+  };
+}
+
 async function normalizeRoots(rawRoots, baseDir, includeHidden) {
-  if (!Array.isArray(rawRoots) || rawRoots.length === 0) {
-    throw new ConfigError('roots must be a non-empty array of paths or root objects');
+  // An empty roots array is a deliberate empty catalog (honest no_user_skills),
+  // not an invitation to scan an unrelated workspace or install demo fixtures.
+  if (!Array.isArray(rawRoots)) {
+    throw new ConfigError('roots must be an array of paths or root objects');
   }
   const roots = [];
   for (let index = 0; index < rawRoots.length; index += 1) {
@@ -77,6 +98,7 @@ async function normalizeRoots(rawRoots, baseDir, includeHidden) {
       namespace,
       trusted: bool(item.trusted, `roots[${index}].trusted`, false),
       includeHidden: bool(item.includeHidden, `roots[${index}].includeHidden`, includeHidden),
+      source: normalizeRootSource(item.source, index),
     });
   }
   const namespaces = new Set();
@@ -272,6 +294,25 @@ export async function normalizeConfig(raw, { baseDir = process.cwd(), configPath
     throw new ConfigError('review.host must be a loopback address (127.0.0.1, ::1 or localhost)');
   }
 
+  const setupRaw = raw.setup ?? {};
+  if (!isObject(setupRaw)) throw new ConfigError('setup must be an object');
+  const setupString = (field) => {
+    const value = setupRaw[field];
+    if (value === undefined || value === null) return null;
+    if (typeof value !== 'string' || value.trim() === '') {
+      throw new ConfigError(`setup.${field} must be a non-empty string`);
+    }
+    return value.trim();
+  };
+  const setup = {
+    managedBy: setupString('managedBy'),
+    schema: setupString('schema'),
+    version: setupString('version'),
+    rootsMode: setupString('rootsMode'),
+    lastHost: setupString('lastHost'),
+    updatedAt: setupString('updatedAt'),
+  };
+
   const known = new Set([
     'roots',
     'includeHidden',
@@ -283,13 +324,14 @@ export async function normalizeConfig(raw, { baseDir = process.cwd(), configPath
     'materials',
     'mcp',
     'review',
+    'setup',
   ]);
   for (const key of Object.keys(raw)) {
     if (!known.has(key)) warnings.push(`unknown config key ignored: ${key}`);
   }
 
   const config = {
-    version: '0.2',
+    version: '0.3',
     configPath,
     baseDir,
     roots,
@@ -302,6 +344,7 @@ export async function normalizeConfig(raw, { baseDir = process.cwd(), configPath
     materials,
     mcp,
     review,
+    setup,
     warnings,
   };
   config.fingerprint = configFingerprint(config);
@@ -355,6 +398,7 @@ export function publicConfig(config) {
       namespace: root.namespace,
       trusted: root.trusted,
       includeHidden: root.includeHidden,
+      source: root.source ?? null,
     })),
     selector: {
       mode: config.selector.mode,
@@ -389,6 +433,7 @@ export function publicConfig(config) {
     materials: config.materials,
     mcp: config.mcp,
     review: config.review,
+    setup: config.setup,
     warnings: config.warnings,
   };
 }
@@ -396,8 +441,17 @@ export function publicConfig(config) {
 export function configFingerprint(config) {
   return sha256(
     stableStringify({
-      schema: 'skill-conductor/config/v0.2',
-      roots: config.roots.map((root) => [root.path, root.namespace, root.trusted]),
+      schema: 'skill-conductor/config/v0.3',
+      setup: {
+        managedBy: config.setup?.managedBy ?? null,
+        rootsMode: config.setup?.rootsMode ?? null,
+      },
+      roots: config.roots.map((root) => [
+        root.path,
+        root.namespace,
+        root.trusted,
+        root.source?.kind ?? null,
+      ]),
       capabilities: config.capabilities,
       policy: { mode: config.policy?.mode ?? 'ask' },
       assistance: {

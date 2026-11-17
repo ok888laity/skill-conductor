@@ -1,23 +1,17 @@
 @echo off
 setlocal
-rem Windows launcher. Set SKILL_CONDUCTOR_NODE to an explicit node.exe if needed.
+rem Windows launcher. Uses SKILL_CONDUCTOR_NODE, PATH, or the project-local
+rem .skill-conductor/runtime Node installed by install.ps1. No global edits.
 if defined SKILL_CONDUCTOR_NODE goto usenode
-goto findnode
-
-:usenode
-set "NODE=%SKILL_CONDUCTOR_NODE%"
-goto run
-
-:findnode
+for /d %%D in ("%~dp0..\runtime\node-v*") do if exist "%%~fD\node.exe" set "NODE=%%~fD\node.exe"
+if defined NODE goto run
 where node >nul 2>nul
-if errorlevel 1 goto fallback
+if errorlevel 1 goto nonode
 set "NODE=node"
 goto run
 
-:fallback
-set "FALLBACK=%USERPROFILE%\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe"
-if not exist "%FALLBACK%" goto nonode
-set "NODE=%FALLBACK%"
+:usenode
+set "NODE=%SKILL_CONDUCTOR_NODE%"
 goto run
 
 :run
@@ -25,5 +19,5 @@ goto run
 exit /b %errorlevel%
 
 :nonode
-echo Node.js 20.11+ not found. Set SKILL_CONDUCTOR_NODE to node.exe. 1>&2
+echo Node.js 20.11+ not found. Run install.ps1 or set SKILL_CONDUCTOR_NODE to node.exe. 1>&2
 exit /b 1

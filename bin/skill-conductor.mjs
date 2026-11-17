@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs/promises';
 import { constants as fsConstants } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import readline from 'node:readline';
 import { fileURLToPath } from 'node:url';
@@ -8,6 +9,8 @@ import { parseArgs } from 'node:util';
 import { discoverConfigPath, loadConfig, normalizeConfig } from '../src/config.mjs';
 import { assistanceExplanation } from '../src/adaptive.mjs';
 import { toErrorObject } from '../src/errors.mjs';
+import { generateHostIntegration, inspectHostIntegrations, verifyHostIntegration } from '../src/host-integration.mjs';
+import { applySetup, doctorReport, normalizeHostName, PRODUCT_VERSION } from '../src/onboarding.mjs';
 import { RunStore } from '../src/store.mjs';
 import {
   chooseRun,
@@ -20,15 +23,24 @@ import { startMcpServer } from '../src/mcp.mjs';
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
-const HELP = `Skill Conductor v0.2 — adaptive, host-neutral skill routing
+const HELP = `Skill Conductor v${PRODUCT_VERSION} - discover YOUR skills, choose or route, multi-host MCP
+
+First use:
+  skill-conductor setup [--host cursor|workbuddy|qoder|deepseek-harness|opencode|generic]
+      [--root PATH ...] [--include-hidden] [--verify-host] [--no-host-config] [--config PATH]
+  skill-conductor doctor [--config PATH]
 
 Usage:
   skill-conductor help
+  skill-conductor setup [options]
+  skill-conductor doctor [--config PATH]
   skill-conductor init [--root PATH | --demo]
   skill-conductor list [--config PATH]
   skill-conductor route TASK [--config PATH] [--material FILE ...] [--phase X] [--mode ask|auto]
+      [--recommend FILE]
   skill-conductor run TASK [--config PATH] [--material FILE ...] [--phase X] [--mode ask|auto]
      [--task-id ID] [--session-id ID] [--event EVENT] [--activity JSON] [--needs-skill] [--manual]
+     [--recommend FILE]
   skill-conductor choose RUN_ID [--config PATH] (--skills ID,ID | --skip) [--activate-only]
   skill-conductor show RUN_ID [--config PATH]
   skill-conductor runs [--config PATH]
@@ -38,35 +50,40 @@ Usage:
   skill-conductor mcp [--config PATH]
   skill-conductor demo [--config PATH]
 
-Config discovery: without --config, installed commands look for
-.skill-conductor/config.json (or skill-conductor.config.json) in the working
-directory and then its parents. Explicit --config always takes precedence.
-Run "skill-conductor init" to create a safe local config, or
-"skill-conductor init --demo" to copy the bundled first-party demo fixtures
-into the current directory. Existing files are never overwritten.
+Config discovery: without --config, commands look for .skill-conductor/config.json
+(or skill-conductor.config.json) from the working directory upward. If none is
+found, the first list/route/run/interactive/doctor/MCP start creates a local
+user-skill config from detected host roots. It never copies demo skills, never
+trusts discovered roots and never scans unrelated workspaces. Existing custom
+configs are preserved; setup --root adds explicit roots.
+
+Setup detects common project/user roots for Cursor, WorkBuddy/CodeBuddy, Qoder,
+DeepSeek Harness (.dsh), OpenCode, Claude, Codex (including bounded plugin cache
+skill dirs) and shared .agents/skills. If no user skills exist it reports
+no_user_skills honestly. "setup --host X" merges only our MCP server into the
+project config for that host; --verify-host launches the generated command and
+does an MCP stdio handshake (protocol evidence, not native-app verification).
 
 Default policy is ask: route/run return "awaiting_choice" when a skill is
 applicable (and never load bodies or execute until an owner choice), or a
-terminal "no_match" when the selector abstains. "route" activates
-context only; "run" executes trusted scripts after approval. --mode auto / a
-trusted config policy.mode=auto is an explicit one-run autonomous opt-in.
+terminal "no_match" when the selector abstains or no user skills exist. "route"
+activates context only; "run" executes trusted scripts after approval. --mode
+auto / a trusted config policy.mode=auto is an explicit one-run autonomous
+opt-in.
 
-Interactive (TTY only) discovers or resumes a pending run, shows the ranked
-recommendation and reasons, and accepts the recommendation, numbered one/many,
-or skip. Empty input is never approval. Noninteractive scripts should use
-route + choose.
+A host agent may pass a recommendation JSON file with --recommend or the MCP
+prepare_skills recommendation field. It must use exact catalog IDs and reasons,
+is validated by the same rules, and is never approval, settings or trust.
 
 Adaptive triggering: assistance.enabled is the owner total switch. Profiles are
 manual, conservative, balanced, proactive or custom. Without --task-id/--event,
 legacy one-shot behavior is kept (except the total switch and manual profile).
 With --task-id the cheap gate may trigger, suppress, reuse or return the same
-pending choice. Settings are owner-CLI only: use
-"skill-conductor settings set assistance.profile conservative" and
-"skill-conductor settings set assistance.enabled false". This is independent of
-policy.mode ask/auto.
+pending choice. Settings are owner-CLI only and setup preserves OFF.
 
 Windows launcher: skill-conductor.cmd (set SKILL_CONDUCTOR_NODE if node is not
-on PATH). Output is JSON on stdout. Diagnostics and errors go to stderr.`;
+on PATH). Output is JSON on stdout. Diagnostics and errors go to stderr; MCP
+stdout carries protocol messages only.`;
 
 function parse(argv) {
   const { values, positionals } = parseArgs({
@@ -74,8 +91,14 @@ function parse(argv) {
     allowPositionals: true,
     options: {
       config: { type: 'string' },
-      root: { type: 'string' },
+      root: { type: 'string', multiple: true },
       demo: { type: 'boolean', default: false },
+      host: { type: 'string' },
+      home: { type: 'string' },
+      'include-hidden': { type: 'boolean', default: false },
+      'no-host-config': { type: 'boolean', default: false },
+      'verify-host': { type: 'boolean', default: false },
+      recommend: { type: 'string' },
       material: { type: 'string', multiple: true },
       observe: { type: 'string', multiple: true },
       phase: { type: 'string' },
@@ -95,16 +118,40 @@ function parse(argv) {
   return { values, positionals };
 }
 
+function homePath(values) {
+  const configured = values.home ?? process.env.SKILL_CONDUCTOR_HOME ?? os.homedir();
+  return path.resolve(configured);
+}
+
+async function autoSetup(values) {
+  const result = await applySetup({
+    cwd: process.cwd(),
+    homeDir: homePath(values),
+    host: values.host ?? null,
+    extraRoots: values.root ?? [],
+    includeHidden: Boolean(values['include-hidden']),
+  });
+  process.stderr.write(
+    `skill-conductor: no config found; discovered ${result.catalog?.counts?.skills ?? 0} user skill(s) in ${result.roots?.length ?? 0} root(s) and wrote ${result.configPath}\n`,
+  );
+  if (result.status === 'no_user_skills') {
+    process.stderr.write(
+      'skill-conductor: no_user_skills (no demo installed). Add a SKILL.md under a host skill root or rerun setup --root PATH.\n',
+    );
+  }
+  return result;
+}
+
 async function requireConfig(values) {
   if (values.config) return loadConfig(values.config, { cwd: process.cwd() });
   const discovered = await discoverConfigPath(process.cwd());
-  if (!discovered) {
-    throw new Error(
-      `no skill-conductor config found from ${process.cwd()} upward; run "skill-conductor init --demo" or pass --config PATH`,
-    );
+  if (discovered) {
+    process.stderr.write(`using config: ${discovered}\n`);
+    return loadConfig(discovered, { cwd: process.cwd() });
   }
-  process.stderr.write(`using config: ${discovered}\n`);
-  return loadConfig(discovered, { cwd: process.cwd() });
+  const result = await autoSetup(values);
+  if (!result.configPath) throw new Error(result.nextAction ?? 'could not create a local config');
+  return loadConfig(result.configPath, { cwd: process.cwd() });
 }
 
 const DEMO_IDS = ['demo:csv-inspector', 'demo:markdown-report'];
@@ -151,7 +198,9 @@ async function init(values) {
   if (values.demo && (await exists(demoDir))) {
     throw new Error(`refusing to overwrite existing demo directory: ${demoDir}`);
   }
-  if (values.demo && values.root) throw new Error('use either --demo or --root, not both');
+  const explicitRoots = values.root ?? [];
+  if (explicitRoots.length > 1) throw new Error('init accepts at most one --root; use setup for multiple roots');
+  if (values.demo && explicitRoots.length > 0) throw new Error('use either --demo or --root, not both');
 
   let raw;
   let roots;
@@ -200,10 +249,10 @@ async function init(values) {
     };
     roots = raw.roots;
   } else {
-    const root = values.root
-      ? path.resolve(cwd, values.root)
+    const root = explicitRoots.length > 0
+      ? path.resolve(cwd, explicitRoots[0])
       : path.join(cwd, 'skills');
-    if (values.root) {
+    if (explicitRoots.length > 0) {
       let stat;
       try {
         stat = await fs.stat(root);
@@ -375,6 +424,157 @@ async function demo(values) {
     artifacts: run.execution?.steps?.flatMap((step) => step.artifacts ?? []) ?? [],
     verification: run.verification,
     artifactDir: run.execution?.artifactDir,
+  });
+}
+
+async function readRecommendationFile(file) {
+  const abs = path.resolve(process.cwd(), file);
+  const stat = await fs.stat(abs);
+  if (!stat.isFile()) throw new Error(`--recommend is not a file: ${abs}`);
+  if (stat.size > 256 * 1024) throw new Error('--recommend JSON exceeds 256 KiB');
+  const text = await fs.readFile(abs, 'utf8');
+  let value;
+  try {
+    value = JSON.parse(text.replace(/^\uFEFF/, ''));
+  } catch (error) {
+    throw new Error(`--recommend must be a JSON object: ${error.message}`);
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('--recommend must contain a JSON object');
+  }
+  return value;
+}
+
+async function recordHostIntegration(configPath, hostIntegration) {
+  const statePath = path.join(path.dirname(configPath), 'setup.json');
+  let state = null;
+  try {
+    state = JSON.parse(await fs.readFile(statePath, 'utf8'));
+  } catch {
+    state = null;
+  }
+  if (!state) return;
+  state.hostIntegration = hostIntegration;
+  state.hostIntegrations = {
+    ...(state.hostIntegrations && typeof state.hostIntegrations === 'object' ? state.hostIntegrations : {}),
+    [hostIntegration.host]: {
+      status: hostIntegration.status,
+      configPath: hostIntegration.configPath,
+      serverName: hostIntegration.serverName ?? null,
+      nativeVerified: false,
+      reloadRequired: hostIntegration.reloadRequired === true,
+    },
+  };
+  state.updatedAt = new Date().toISOString();
+  await writeJsonAtomic(statePath, state);
+}
+
+async function setupCommand(values) {
+  const host = normalizeHostName(values.host);
+  if (values['verify-host'] && !host) throw new Error('--verify-host requires --host');
+  let result = await applySetup({
+    cwd: process.cwd(),
+    homeDir: homePath(values),
+    host,
+    extraRoots: values.root ?? [],
+    includeHidden: Boolean(values['include-hidden']),
+    configPath: values.config ?? null,
+  });
+  if (!result.ok) {
+    emit(result);
+    process.exitCode = 1;
+    return;
+  }
+  let hostIntegration = null;
+  if (host && !values['no-host-config'] && result.configPath) {
+    hostIntegration = await generateHostIntegration({
+      host,
+      cwd: process.cwd(),
+      configPath: result.configPath,
+      nodePath: process.execPath,
+    });
+    if (values['verify-host']) {
+      if (
+        hostIntegration.status === 'configured' ||
+        hostIntegration.status === 'already_configured' ||
+        hostIntegration.status === 'native_unverified'
+      ) {
+        try {
+          hostIntegration.verification = await verifyHostIntegration({
+            host,
+            cwd: process.cwd(),
+          });
+        } catch (error) {
+          hostIntegration.verification = {
+            status: 'handshake_failed',
+            nativeVerified: false,
+            error: { code: error.code ?? 'handshake_failed', message: error.message },
+          };
+        }
+      } else {
+        hostIntegration.verification = {
+          status: 'not_run',
+          nativeVerified: false,
+          reason: 'No safe project config was written; merge the generated patch first.',
+        };
+      }
+    }
+    await recordHostIntegration(result.configPath, hostIntegration);
+  }
+  const messages = [];
+  messages.push(`runtime ready: Node ${process.versions.node} (${process.execPath})`);
+  messages.push(
+    result.created
+      ? `created ${result.configPath}`
+      : result.changed
+        ? `updated ${result.configPath}`
+        : `config already up to date: ${result.configPath}`,
+  );
+  if (result.status === 'no_user_skills') {
+    messages.push('no_user_skills: no demo was installed and no skill root was invented.');
+  } else if (result.status === 'no_valid_user_skills') {
+    messages.push('no_valid_user_skills: files were found but none has usable metadata.');
+  } else {
+    messages.push(`ready: ${result.catalog.counts.valid} valid user skill(s) across ${result.roots.length} root(s).`);
+  }
+  if (hostIntegration) {
+    messages.push(
+      `${hostIntegration.label} config ${hostIntegration.status}: ${hostIntegration.configPath}`,
+    );
+    if (hostIntegration.reloadRequired) {
+      messages.push(`reload/enable in the host is still required: ${hostIntegration.reload ?? 'restart the host'}`);
+    }
+    if (hostIntegration.verification?.status === 'protocol_verified') {
+      messages.push(
+        `MCP stdio handshake passed (${hostIntegration.verification.toolCount} tools); native app verification was not performed.`,
+      );
+    }
+  }
+  result = { ...result, hostIntegration, messages };
+  emit(result);
+}
+
+async function doctorCommand(values) {
+  let config;
+  if (values.config) {
+    config = await loadConfig(values.config, { cwd: process.cwd() });
+  } else {
+    const discovered = await discoverConfigPath(process.cwd());
+    if (discovered) config = await loadConfig(discovered, { cwd: process.cwd() });
+    else {
+      const initialized = await autoSetup(values);
+      if (!initialized.ok) {
+        emit(initialized);
+        process.exitCode = 1;
+        return;
+      }
+      config = await loadConfig(initialized.configPath, { cwd: process.cwd() });
+    }
+  }
+  const report = await doctorReport({ config, cwd: process.cwd() });
+  emit({
+    ...report,
+    hostIntegrations: await inspectHostIntegrations({ cwd: process.cwd() }),
   });
 }
 
@@ -585,13 +785,13 @@ function interactiveSummary(run) {
 }
 
 async function interactive(values) {
+  const config = await requireConfig(values);
   if (!process.stdin.isTTY || !process.stderr.isTTY) {
     throw new Error('interactive 需要 TTY；脚本请使用 route + choose');
   }
   if (values.mode && !['ask', 'auto'].includes(values.mode)) {
     throw new Error('--mode 只能是 ask 或 auto');
   }
-  const config = await requireConfig(values);
   const prompter = createPrompter();
   try {
     const store = new RunStore({ runDir: config.execution.runDir });
@@ -721,6 +921,16 @@ async function main() {
     return;
   }
 
+  if (command === 'setup') {
+    await setupCommand(values);
+    return;
+  }
+
+  if (command === 'doctor') {
+    await doctorCommand(values);
+    return;
+  }
+
   if (command === 'init') {
     await init(values);
     return;
@@ -768,6 +978,7 @@ async function main() {
       if (values['needs-skill']) activity.needsSkill = true;
       if (values.manual) activity.manualRequest = true;
     }
+    const recommendation = values.recommend ? await readRecommendationFile(values.recommend) : null;
     const result = await prepareTask({
       config,
       task,
@@ -781,6 +992,7 @@ async function main() {
       sessionId: values['session-id'] ?? null,
       event: values.manual ? 'manual_request' : values.event ?? null,
       activity,
+      recommendation,
     });
     emit({
       ...(result.pendingChoice ?? result.run),

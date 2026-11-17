@@ -1,0 +1,190 @@
+{
+  "schema": "skill-conductor/public-user-install-results/v1",
+  "version": "0.3.0",
+  "testedOn": "2026-11-17",
+  "model": "opencode-go/deepseek-v4.1-flash#max",
+  "ownSkillTests": {
+    "passed": 15,
+    "failed": 0,
+    "authorSourceImported": false,
+    "fixture": "Ten nearby English-described user-owned fixture skills in fake homes/projects; no product demo skill or sample CSV in setup.",
+    "checks": [
+      {
+        "name": "fresh first list discovers ten nearby user skills, no demo setup or empty project skills",
+        "pass": true
+      },
+      {
+        "name": "project-level skill discovery works in Chinese paths",
+        "pass": true
+      },
+      {
+        "name": "setup repeats idempotently and keeps owner OFF/custom settings",
+        "pass": true
+      },
+      {
+        "name": "unknown existing custom configuration bytes are preserved",
+        "pass": true
+      },
+      {
+        "name": "legacy demo-only scaffold migrates to user skills with backup and no demo trust",
+        "pass": true
+      },
+      {
+        "name": "empty user installation reports no_user_skills without demo substitution",
+        "pass": true
+      },
+      {
+        "name": "cursor generated descriptor preserves existing server and runs official SDK stdio against user skills",
+        "pass": true
+      },
+      {
+        "name": "workbuddy generated descriptor preserves existing server and runs official SDK stdio against user skills",
+        "pass": true
+      },
+      {
+        "name": "qoder generated descriptor preserves existing server and runs official SDK stdio against user skills",
+        "pass": true
+      },
+      {
+        "name": "opencode generated descriptor preserves existing server and runs official SDK stdio against user skills",
+        "pass": true
+      },
+      {
+        "name": "generic generated descriptor preserves existing server and runs official SDK stdio against user skills",
+        "pass": true
+      },
+      {
+        "name": "DeepSeek Harness output is an installable Cordis insert patch with real stdio command",
+        "pass": true
+      },
+      {
+        "name": "MCP server-name collision does not overwrite an unrelated conductor server",
+        "pass": true
+      },
+      {
+        "name": "JSONC host configuration is preserved without secret logging or false native verification",
+        "pass": true
+      },
+      {
+        "name": "current host can recommend an English-described user skill for Chinese task with no extra provider key",
+        "pass": true
+      }
+    ]
+  },
+  "officialMcpSdk": {
+    "package": "@modelcontextprotocol/sdk",
+    "version": "1.32.2",
+    "scope": "isolated development client; not a runtime dependency"
+  },
+  "windowsNoNode": {
+    "passed": true,
+    "powershell": "Windows PowerShell5.1",
+    "node": "24.22.3",
+    "source": "Actual nodejs.org standalone executable download with pinned SHA256; no node/npm on child PATH; no custom hash override.",
+    "projectPath": "spaced Chinese workspace",
+    "appVersion": "0.3.0",
+    "noDemo": true,
+    "managedRuntimeInsideProject": true,
+    "elapsedMs": 62634,
+    "scope": "Local staged candidate source ZIP plus real official runtime. Final public artifact installation is checked separately after publishing."
+  },
+  "installerBoundaries": {
+    "passed": 4,
+    "failed": 0,
+    "checks": [
+      {
+        "name": "bad official-runtime checksum fails before extracting or executing Node",
+        "pass": true
+      },
+      {
+        "name": "traversal source archive rejected before extraction",
+        "pass": true
+      },
+      {
+        "name": "symlink source archive rejected before extraction",
+        "pass": true
+      },
+      {
+        "name": "project-state reparse escape is rejected and outside data remains unchanged",
+        "pass": true
+      }
+    ]
+  },
+  "nativeOpenCode": {
+    "passed": true,
+    "version": "2.3.0",
+    "model": "opencode-go/deepseek-v4.1-flash#max",
+    "fixtureSkills": 10,
+    "selected": [
+      "agents-project:pdf-tables"
+    ],
+    "status": "awaiting_choice",
+    "activated": false,
+    "executed": false,
+    "successfulTools": [
+      "conductor_list_skills",
+      "conductor_prepare_skills"
+    ],
+    "rejectedToolCalls": [],
+    "retryExplanation": "The host first supplied both a selection and abstainReason. Validation rejected that contradiction; the model retried with selection only and got awaiting_choice. Original trace retained. Tool schema/instructions now clarify this rule."
+  },
+  "platforms": [
+    {
+      "host": "Cursor",
+      "config": ".cursor/mcp.json",
+      "officialSchema": true,
+      "officialSdkStdio": true,
+      "nativeApp": false
+    },
+    {
+      "host": "WorkBuddy",
+      "config": ".workbuddy/mcp.json",
+      "officialSchema": true,
+      "officialSdkStdio": true,
+      "nativeApp": false
+    },
+    {
+      "host": "Qoder",
+      "config": ".mcp.json (CLI project scope)",
+      "officialSchema": true,
+      "officialSdkStdio": true,
+      "nativeApp": false
+    },
+    {
+      "host": "DeepSeek Harness",
+      "config": "Local bundle: cordis.patch.yml insert operation + package.json dsh.bundle.patch",
+      "officialSchema": true,
+      "officialSdkStdio": true,
+      "nativeApp": false
+    },
+    {
+      "host": "OpenCode",
+      "config": "opencode.json mcp.servers legacy stdio",
+      "officialSchema": true,
+      "officialSdkStdio": true,
+      "nativeApp": true,
+      "nativeVersion": "2.3.0"
+    },
+    {
+      "host": "Generic MCP/SDK",
+      "config": "Project stdio descriptor / callback",
+      "officialSchema": true,
+      "officialSdkStdio": true,
+      "nativeApp": null
+    }
+  ],
+  "preservedFindings": [
+    "Early project root placeholder produced a double absolute path; fixed and rechecked in a spaced Chinese project.",
+    "Initial DeepSeek output used a composition entry instead of an installable insert patch; fixed against the official template.",
+    "An unrelated conductor MCP name could be overwritten; fixed with a stable unused name and verified preservation.",
+    "Real Windows no-Node trials exposed an incomplete staged hash lookup, PowerShell5.1 archive path limits, and a hash-module dependency. The consistent pinned standalone executable branch and .NET hash helper passed an actual install. Original failures are retained.",
+    "Controller negative-test harness initially had a Python fixture quoting error and a wrapped-stderr matcher; fixed harness and reran without changing the intended rejection behavior."
+  ],
+  "limits": [
+    "Only local SKILL.md packages are discovered; opaque native/provider catalogs may require host-specific registry integration.",
+    "Individual skill tools/accounts/dependencies are not bulk installed during product setup. The product runtime itself needs Node only.",
+    "Native Cursor/WorkBuddy/Qoder/DeepSeek Harness apps were not automated in this test environment. Their documented config/bundle structure and exact stdio launch commands were tested.",
+    "macOS installer entry exists but no native macOS run is claimed; Linux behavior is covered by CI.",
+    "No npm registry package was published. Installation uses the public GitHub source and bootstrap scripts."
+  ]
+}

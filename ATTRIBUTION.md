@@ -1,8 +1,24 @@
 # Attribution and source boundaries
 
-Skill Conductor v0.2 is an original JavaScript implementation, but its design is deliberately informed by multiple public projects and the existing Agent Skills / SKILL.md conventions. The v0.2 adaptive gate combines the before-step hook/phase-boundary ideas cited below with bounded local task state; no upstream implementation was copied. No upstream source code was copied into this repository in this session. Upstream projects are cited below at the level of design patterns, with their limits noted.
+Skill Conductor v0.3 is an original JavaScript implementation, but its design is deliberately informed by multiple public projects and the existing Agent Skills / SKILL.md conventions. The v0.2 adaptive gate combines the before-step hook/phase-boundary ideas cited below with bounded local task state; v0.3 adds real-user discovery, project-local bootstrap/runtime and multi-host adapters. No upstream implementation was copied. No upstream source code was copied into this repository in this session. Upstream projects are cited below at the level of design patterns, with their limits noted.
 
 Full source-review notes and metadata are in [`research/upstream-review.json`](research/upstream-review.json). That file records 16 documented sources; not every source was code-audited, and `repositoryReview.claimsIndependentlyReproduced` is `false`.
+
+## v0.3 host onboarding sources
+
+The 0.3 onboarding adapters were generated from public official schemas, not cloned app code:
+
+| Source | Used for | Boundary |
+| --- | --- | --- |
+| https://prod.cursor.com/help/customization/mcp | Cursor project `.cursor/mcp.json` `mcpServers` command/args shape | Project JSON schema and generated-command stdio test; Cursor desktop was not automated. |
+| https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/MCP-Guide | WorkBuddy project `.workbuddy/mcp.json` local `mcpServers` | No WorkBuddy app run; managed runtime fields not assumed. |
+| https://docs.qoder.com/cli/mcp-reference and https://docs.qoder.com/extensions/skills | Qoder CLI project `.mcp.json` / documented `.qoder/settings.json`, and `.qoder/skills` roots | CLI schema/stdio only; Qoder IDE reload not claimed. |
+| https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/preset/agent-preset/skills/dsh-doc/templates/mcp/package.json and `.../cordis.patch.yml` | DSH installable local bundle: `- insert:` patch and `dsh.bundle.patch` | Generated bundle and stdio handshake only; native DSH installation not performed. |
+| Existing OpenCode 2.x adapter evidence in this repository | Legacy `opencode.json` `mcp.servers` shape | Prior native 2.2.7/2.3.0 observation retained; 0.3 rechecks schema/stdio, not native app. |
+
+The v0.3 platform review notes record the reviewed URLs and schema limitations. The installer pins
+official Node 24.22.3 archives and SHA256 values from Node's published `SHASUMS256.txt`; no
+third-party mirror fallback is used.
 
 ## Directly relevant projects
 

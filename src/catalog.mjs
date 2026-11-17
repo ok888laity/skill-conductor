@@ -228,6 +228,7 @@ async function readSkillAt(dir, root, relDir, issues) {
     version: sidecar?.version || String(data.version ?? ''),
     license: sidecar?.license || String(data.license ?? ''),
     namespace: root.namespace,
+    rootSource: root.source ?? null,
     relativePath: relativePath || '.',
     dir: path.resolve(dir),
     realDir,
@@ -389,7 +390,12 @@ export async function discoverCatalog(config) {
     issues,
     duplicateNames,
     catalogHash,
-    roots: config.roots.map((root) => ({ path: root.path, namespace: root.namespace, trusted: root.trusted })),
+    roots: config.roots.map((root) => ({
+      path: root.path,
+      namespace: root.namespace,
+      trusted: root.trusted,
+      source: root.source ?? null,
+    })),
     scannedAt: new Date().toISOString(),
     counts: {
       skills: skills.length,
@@ -458,13 +464,28 @@ export async function loadSkillContent(skill, { maxBytes = MAX_SKILL_BYTES } = {
   };
 }
 
+export function catalogStatus(catalog) {
+  if (catalog.counts.skills === 0) return 'no_user_skills';
+  if (catalog.counts.valid === 0) return 'no_valid_user_skills';
+  return 'ready';
+}
+
 export function catalogSummary(catalog, { includeIssues = true } = {}) {
+  const status = catalogStatus(catalog);
   return {
     catalogHash: catalog.catalogHash,
     scannedAt: catalog.scannedAt,
     counts: catalog.counts,
+    status,
+    readyForRealTasks: status === 'ready',
     duplicateNames: catalog.duplicateNames,
     roots: catalog.roots,
+    ...(status === 'no_user_skills'
+      ? {
+          nextAction:
+            'No existing user skills were found. Add a SKILL.md under a host skill root or rerun setup --root PATH; no demo was installed.',
+        }
+      : {}),
     skills: catalog.skills.map((skill) => ({
       id: skill.id,
       name: skill.name,
@@ -490,6 +511,7 @@ export function catalogSummary(catalog, { includeIssues = true } = {}) {
       sha256: skill.sha256,
       sidecarSha256: skill.sidecarSha256,
       relativePath: skill.relativePath,
+      rootSource: skill.rootSource ?? null,
       rootTrusted: skill.rootTrusted,
       untrustedReason: skill.untrustedReason,
       valid: skill.valid,

@@ -10,13 +10,17 @@ import {
   recordSelectorCall,
 } from './adaptive.mjs';
 import { analyzePlan, resolveReference } from './capabilities.mjs';
-import { catalogSummary, discoverCatalog, loadSkillContent } from './catalog.mjs';
+import { catalogStatus, catalogSummary, discoverCatalog, loadSkillContent } from './catalog.mjs';
 import { normalizeConfig } from './config.mjs';
 import { ConfigError, DecisionError } from './errors.mjs';
 import { rankLexical } from './lexical.mjs';
 import { collectMaterials, materialRefs } from './materials.mjs';
 import { runTrustedSkill, executionTrust } from './runner.mjs';
-import { selectRecommendation } from './selectors.mjs';
+import {
+  appendHostRecommendationCandidates,
+  selectHostRecommendation,
+  selectRecommendation,
+} from './selectors.mjs';
 import { RunStore, computePlanHash } from './store.mjs';
 import {
   decodeUtf8,
@@ -186,12 +190,13 @@ function selectorMeta(config, recommendation, ranking) {
     diagnostics: ranking.diagnostics,
     offeredAll: ranking.offeredAll,
     provider: recommendation.provider ?? null,
+    ...(recommendation.note ? { note: recommendation.note } : {}),
   };
 }
 
-async function rankingFor(config, catalog, task, phase, observations, selector) {
+async function rankingFor(config, catalog, task, phase, observations, selector, forceFullRoster = false) {
   const validCount = catalog.skills.filter((skill) => skill.valid && skill.name).length;
-  const semantic = config.selector.mode !== 'lexical' || typeof selector === 'function';
+  const semantic = forceFullRoster || config.selector.mode !== 'lexical' || typeof selector === 'function';
   const maxCandidates = semantic
     ? validCount <= config.selector.semanticAllThreshold
       ? Math.max(validCount, 1)
@@ -226,7 +231,7 @@ function baseRecord({
   adaptive = null,
 }) {
   const record = {
-    schema: 'skill-conductor/run/v0.2',
+    schema: 'skill-conductor/run/v0.3',
     runId,
     createdAt: nowIso(),
     updatedAt: nowIso(),
@@ -243,6 +248,7 @@ function baseRecord({
     configPath: config.configPath,
     catalogHash: catalog.catalogHash,
     catalogCounts: catalog.counts,
+    catalogStatus: catalogStatus(catalog),
     selector,
     materials: materialRefs(materials),
     materialErrors: materials.errors,
@@ -301,7 +307,7 @@ async function createGateRecord({
   const store = new RunStore({ runDir: config.execution.runDir });
   await store.ensure();
   const record = {
-    schema: 'skill-conductor/run/v0.2',
+    schema: 'skill-conductor/run/v0.3',
     runId,
     createdAt: nowIso(),
     updatedAt: nowIso(),
@@ -386,6 +392,7 @@ export async function prepareTask({
   mode = null,
   intent = 'run',
   selector = null,
+  recommendation = null,
   executor = null,
   verifier = null,
   cwd = process.cwd(),
@@ -529,22 +536,55 @@ export async function prepareTask({
     { cwd, limits: config.materials },
   );
   const catalog = await discoverCatalog(config);
-  const ranking = await rankingFor(config, catalog, task, phase, observations, selector);
-  const recommendation = await selectRecommendation({
+  const hostRecommendation = recommendation !== null && recommendation !== undefined;
+  const ranking = await rankingFor(
     config,
     catalog,
-    ranking,
-    materials,
     task,
     phase,
+    observations,
     selector,
-  });
+    hostRecommendation,
+  );
+  let recommendationResult;
+  let effectiveRanking = ranking;
+  if (hostRecommendation) {
+    if (!recommendation || typeof recommendation !== 'object' || Array.isArray(recommendation)) {
+      throw new ConfigError('recommendation must be a JSON object with a selected array');
+    }
+    effectiveRanking = appendHostRecommendationCandidates(ranking, recommendation, config, catalog);
+    recommendationResult = selectHostRecommendation({
+      recommendation,
+      config,
+      catalog,
+      ranking: effectiveRanking,
+    });
+  } else {
+    recommendationResult = await selectRecommendation({
+      config,
+      catalog,
+      ranking,
+      materials,
+      task,
+      phase,
+      selector,
+    });
+  }
+  // An empty discovered catalog is an honest no_user_skills state, not a demo
+  // fallback and not a request for an empty approval.
+  if (catalog.skills.length === 0 && (!recommendationResult.selected || recommendationResult.selected.length === 0)) {
+    recommendationResult = {
+      ...recommendationResult,
+      abstainReason:
+        'no_user_skills: no existing user skills were discovered; add a SKILL.md root or pass --root PATH',
+    };
+  }
   if (identity.taskId) {
     await recordSelectorCall({ config, taskId: identity.taskId, sessionId: identity.sessionId });
   }
-  const candidates = buildCandidates(config, catalog, ranking, recommendation);
-  const expanded = expandRecommendation(recommendation, catalog, candidates, config);
-  const expandedRecommendation = { ...recommendation, selected: expanded };
+  const candidates = buildCandidates(config, catalog, effectiveRanking, recommendationResult);
+  const expanded = expandRecommendation(recommendationResult, catalog, candidates, config);
+  const expandedRecommendation = { ...recommendationResult, selected: expanded };
   const plan = buildPlan({ config, catalog, recommendation: expandedRecommendation });
   const recommendedIds = new Set(expanded.map((entry) => entry.id));
   for (const candidate of candidates) {
@@ -570,11 +610,11 @@ export async function prepareTask({
     config,
     catalog,
     materials,
-    score: ranking,
+    score: effectiveRanking,
     recommendation: expandedRecommendation,
     candidates,
     plan,
-    selector: selectorMeta(config, recommendation, ranking),
+    selector: selectorMeta(config, recommendationResult, effectiveRanking),
     identity,
     adaptive,
   });
@@ -635,6 +675,8 @@ export function pendingView(record) {
     mode: record.mode,
     task: record.task,
     phase: record.phase,
+    catalogStatus: record.catalogStatus ?? null,
+    catalogCounts: record.catalogCounts ?? null,
     selector: record.selector,
     candidates: record.candidates,
     recommendation: record.recommendation,
@@ -642,7 +684,7 @@ export function pendingView(record) {
     options: record.options,
     planHash: record.planHash,
     instruction:
-      'Show these choices to the owner. To proceed, the owner must run: skill-conductor choose <runId> --skills ID,ID (or --skip) with the same --config.',
+      'Show these choices to the owner. A host-supplied recommendation is not approval. To proceed, the owner must run: skill-conductor choose <runId> --skills ID,ID (or --skip) with the same --config.',
   };
 }
 
@@ -1138,6 +1180,7 @@ export async function withPolicyMode(config, mode) {
       namespace: root.namespace,
       trusted: root.trusted,
       includeHidden: root.includeHidden,
+      ...(root.source ? { source: root.source } : {}),
     })),
     includeHidden: config.includeHidden,
     selector: {
@@ -1171,6 +1214,7 @@ export async function withPolicyMode(config, mode) {
     materials: config.materials,
     mcp: config.mcp,
     review: config.review,
+    ...(config.setup ? { setup: config.setup } : {}),
   };
   return normalizeConfig(raw, { baseDir: config.baseDir, configPath: config.configPath });
 }

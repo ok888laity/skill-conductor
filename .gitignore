@@ -34,5 +34,6 @@ release-staging/
 onboarding-temp/
 onboarding-audit/
 adaptive-audit/
+setup-audit/
 .DS_Store
 Thumbs.db

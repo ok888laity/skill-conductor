@@ -1,284 +1,179 @@
 # Skill Conductor
 
-一个**宿主无关**的 SKILL.md 发现、推荐、人工选择、激活与可选受信任执行组件。核心是 Node.js ESM SDK 与 CLI；MCP stdio 是适配层，OpenCode 只是一个可选的语义选择器适配器，不是运行前提。
+**让当前 agent 按需使用你已有的技能。** 一句话安装，自动准备所需的 Node 运行环境；支持推荐后由你选择，也支持显式开启自主模式。通过 SDK 或 MCP 接入不同宿主。
 
-当前 v0.2.0 默认采用 **ask（人工选择）**，显式开启 **auto** 后自主选择和调用，并保留推荐理由、执行状态和独立校验记录。v0.2 增加独立的按需触发设置：宿主提供任务身份和工作事件后，先做轻量本地判断，再决定是否扫描目录和调用选择器；支持关闭、触发档位、按任务去重、预算、失败阈值和上下文复用。
-
-English quickstart: [`README.en.md`](README.en.md). 自适应触发的完整接口、默认值和限制见 [`docs/adaptive-triggering.md`](docs/adaptive-triggering.md)（English: [`docs/adaptive-triggering.en.md`](docs/adaptive-triggering.en.md)）。开发期真实 OpenCode 集成结果（非 benchmark）见 [`docs/live-integration.md`](docs/live-integration.md)。
-
-普通用户安装与 **4 个领域、40 个真实 skill、64 个任务**的推荐测试、4 例真实执行及已知失败，见 [`docs/onboarding-test-report.md`](docs/onboarding-test-report.md)。
-
-0.2.0 的独立安装包检查、固定 20 步序列中选择器调用从 20 次降至 3 次的对照，以及真实 max 选择器检查，见 [`docs/adaptive-test-report.md`](docs/adaptive-test-report.md)。该对照是集成验证，不代表生产准确率或耗时保证。
-
-可选的真实技能测试复现步骤见 [`docs/reproduce-live-tests.md`](docs/reproduce-live-tests.md)，本次临时技能清理与原环境哈希复核摘要见 [`docs/environment-restoration.json`](docs/environment-restoration.json)。
-
-## 为什么默认 ask
-
-用户的需求是：发现可用 skill 时先让用户知道，多个候选时给出推荐和理由，并允许用户选择单个、多个或跳过；也可以显式允许完全自主。
-
-因此：
-
-- `policy.mode` 默认 `ask`。
-- 在 `ask` 模式下，`route` / `run` 只做发现、排序、推荐并持久化 `awaiting_choice`，**不加载正文、不执行脚本、不调用宿主执行器**。若选择器明确拒选/没有可用技能，状态为终态 `no_match`（保留候选与 abstainReason），**不会制造一个空的审批问题**。
-- 选择必须由真正的所有者动作完成：CLI `choose`、TTY 交互菜单，或受信任的 SDK 宿主回调。
-- MCP **不暴露审批或改模式工具**。模型给的是推荐，不能自我批准。
-- `--mode auto` 或受信任配置 `policy.mode: "auto"` 是一次显式自主授权；空输入、超时、模型输出都不会被当成批准。
-
-状态分开记录，避免把“选了”当成“执行了”或“验证成功”：
-
-```
-routed -> awaiting_choice -> decided -> activated -> executed
-                                                  |-> partial (some steps handed off/blocked)
-                                                  \-> independentlyVerified
-```
-
-若某个步骤的依赖没有实际执行（失败、超时、仅 handoff 或被阻塞），依赖步骤会记录为 `blocked`，即使 `stopOnError: false` 也不会继续执行它；互不相关的分支仍可继续。实际执行与待宿主 handoff 混合时，总体状态是 `partial`，不会被包装成 `completed` / `executed`。
-
-## 安装与首次运行
-
-需要 Node.js >= 20.11（已在 Node 24.22.3 / npm 11.19.1 上验证）。**npm registry 上的裸包名 `skill-conductor` 目前不可用（E404）**；请使用公开 GitHub 仓库的 HTTPS tarball，不要依赖 `npm install skill-conductor`。
-
-一次性运行（无需全局安装，产物写在当前目录）：
-
-```powershell
-npx --yes --package=https://github.com/ok888laity/skill-conductor/archive/refs/heads/main.tar.gz skill-conductor demo
-```
-
-全局安装后初始化并运行：
-
-```powershell
-npm install --global https://github.com/ok888laity/skill-conductor/archive/refs/heads/main.tar.gz
-skill-conductor init --demo
-skill-conductor demo
-```
-
-`init` 默认在**当前目录**创建 `.skill-conductor/config.json` 和空的 `./skills` 根，`policy` 保持 `ask`，且 `execution.enabled=false`（不信任任何脚本）。`init --root PATH` 使用已有技能根；已有配置或文件**不会被覆盖**。`init --demo` 把仓库自带的四个第一方演示技能与合成 CSV 复制到 `.skill-conductor/demo/`，只信任 `demo:csv-inspector` 与 `demo:markdown-report` 两个脚本，仍然保持 `ask`；`demo` 命令本身才是显式 auto。
-
-安装后的命令会从当前目录向上查找 `.skill-conductor/config.json`，再查找 `skill-conductor.config.json`；显式 `--config PATH` 始终优先。未初始化时 `demo` 仍可直接运行，但所有运行记录与产物写当前目录的 `.skill-conductor/runs/`，不会写安装包目录。显式 `--config` 则保留该配置里的 `execution.runDir`。
-
-`demo` 是**显式 auto** 的集成示例：它读取 `销售 数据.csv`（文件名含中文和空格），按依赖顺序运行两个受信任脚本，写出 `runs/artifacts/<runid>/csv-summary.json` 与 `report.md`，再由宿主 verifier 独立核对：
-
-- CSV 行数：6
-- 数量合计：40
-- 金额合计：6260
-
-这些数字来自本地实际运行，不是模型宣称。
-
-## 快速开始（Windows 源码树）
-
-仓库自带 PowerShell/CMD 启动器 `skill-conductor.cmd`：
-
-```powershell
-# 如果 node 不在 PATH，可显式指定（本机开发运行时示例）
-$env:SKILL_CONDUCTOR_NODE = "$env:USERPROFILE\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe"
-
-.\skill-conductor.cmd init --demo
-.\skill-conductor.cmd demo
-```
-
-不使用 `.cmd` 时直接运行：
-
-```powershell
-node bin\skill-conductor.mjs init --demo
-node bin\skill-conductor.mjs demo
-```
-
-## CLI
+普通用户只需要把这一句发给自己的 agent：
 
 ```text
-skill-conductor.cmd help
-skill-conductor.cmd init [--root PATH | --demo]
-skill-conductor.cmd list [--config PATH]
-skill-conductor.cmd route TASK [--config PATH] [--material FILE ...] [--phase X]
-skill-conductor.cmd run TASK [--config PATH] [--material FILE ...] [--phase X]
-    [--task-id ID] [--session-id ID] [--event EVENT] [--activity JSON] [--needs-skill] [--manual]
-skill-conductor.cmd choose RUN_ID [--config PATH] (--skills ID,ID | --skip) [--activate-only]
-skill-conductor.cmd show RUN_ID [--config PATH]
-skill-conductor.cmd runs [--config PATH]
-skill-conductor.cmd settings show [--config PATH]
-skill-conductor.cmd settings set KEY VALUE [--config PATH]
-skill-conductor.cmd interactive [--config PATH]
-skill-conductor.cmd mcp [--config PATH]
-skill-conductor.cmd demo [--config PATH]
+请读取 https://raw.githubusercontent.com/ok888laity/skill-conductor/main/INSTALL.md，按其中步骤安装并接入 Skill Conductor，自动准备所需环境、使用我现有的技能，默认均衡触发和人工确认，完成后继续当前任务。
 ```
 
-- `init`：安全脚手架。默认只创建本地配置与技能根，不覆盖已有文件，也不启用执行；`--demo` 仅复制并信任仓库自带演示技能；`--root` 使用已有技能根。
-- `route`：只路由/激活上下文；在 ask 下返回 pending；不会执行脚本。
-- `run`：ask 下同样先返回 pending；所有者 `choose` 后才按持久化意图执行。
-- `choose`：新进程读取持久化 run，校验 pending 状态、plan token、技能/脚本/配置 hash；`--skip` 记录跳过；`--activate-only` 只激活。
-- `settings show` / `settings set KEY VALUE`：所有者 CLI 查看/修改 `assistance.enabled`、profile、已知 triggers 和预算；只做完整校验后原子写入，保留其他配置与 `policy.mode`。MCP 没有设置或审批工具。
-- `--task-id ID`、`--event EVENT`、`--activity JSON`、`--needs-skill`、`--manual`：启用事件感知的便宜触发门。不传 `--task-id` 时保留旧的一次性行为；总开关与 manual profile 仍生效。
-- `interactive`：简体中文 TTY 菜单，显示推荐、理由、候选编号与阻塞项；可输入 `a` 接受推荐、`1` 或 `1,3` 选编号、`s` 跳过、`q` 退出。新建任务时会明确询问 `ask`（默认，先确认）或 `auto`（本次自主），也可用 `--mode auto` 预先指定；恢复已有 pending 时保留其原模式和意图。**空输入会重新询问，绝不等于批准。** 非 TTY 会报错，脚本请用 `route` + `choose`。
-- 机器输出为 stdout 上的 JSON；提示和错误走 stderr。交互菜单的提示也走 stderr，因此最后结果仍是可解析 JSON。
+Agent 的完整执行契约见 [`INSTALL.md`](INSTALL.md)（English: [`INSTALL.en.md`](INSTALL.en.md)）。普通用户不需要运行 demo、粘贴多条命令、了解 npm/Node，或再准备一个模型订阅。
 
-`--mode auto` 只对当前命令显式生效；默认配置文件仍可保持 ask。
+## 它会做什么
 
-## SDK
+1. 自动发现你**已经存在**的项目/用户技能根（Cursor、WorkBuddy/CodeBuddy、Qoder、DeepSeek Harness、OpenCode、Claude、Codex、共享 `.agents/skills` 等）。
+2. 生成项目本地的 `.skill-conductor/config.json`，保留已有自定义配置；没有技能就诚实返回 `no_user_skills`，不会用 demo 填充。
+3. 为选定的宿主只合并本产品的 MCP server 到项目配置；已有值/凭证保留且不打印，冲突时使用未占用的 server 名而不是覆盖。
+4. 提供 `doctor`/MCP `health` 和真实的 `list_skills` 清单，让宿主看到运行时、根、技能数和 reload 状态。
+5. 默认 **ask**：推荐给用户，用户选择后才加载正文；`auto` 必须显式开启；`assistance.enabled=false` 始终优先。
+6. 用当前宿主自己的模型做语义推荐时，不需要第二个 API key：宿主读候选元数据，再把精确 ID/理由交给 `prepare_skills` 校验。推荐不是审批。
 
-```js
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { loadConfig, prepareTask, chooseRun, verifyRun } from './src/index.mjs';
+## 一句话安装（由 agent 执行）
 
-const config = await loadConfig('examples/config.demo.json');
+Windows PowerShell 5.1+：
 
-// 1) 路由并持久化 pending；ask 下不会加载正文或执行
-const { run, pendingChoice, trigger } = await prepareTask({
-  config,
-  task: '分析这份 CSV 并生成报告',
-  taskId: 'task-2026-001', // 显式任务身份；省略则保留 v0.1 一次性行为
-  event: 'new_task',
-  files: ['data/销售 数据.csv'],
-  phase: 'reporting',
-});
-// trigger 是结构化解释：action/reasonCode/explanation/budget/counters
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File install.ps1
+```
 
-// 2) 把 pendingChoice.candidates / recommendation 展示给用户
-// 3) 用户真正选择后，由受信任宿主代码记录决定并恢复
-const executed = await chooseRun({
-  config,
-  runId: run.runId,
-  skills: ['demo:csv-inspector', 'demo:markdown-report'],
-  decisionToken: run.planHash, // 防止陈旧 UI 决定
-});
+Linux / macOS：
 
-// 4) 独立验证必须是真正的复核，而不是“执行成功就 verified: true”。
-// 这里重新读取输入 CSV，独立计算行数，再与脚本产出的摘要对照。
-let verification = null;
-if (executed.states.executed) {
-  const summary = JSON.parse(
-    await fs.readFile(path.join(executed.execution.artifactDir, 'csv-summary.json'), 'utf8'),
-  );
-  const csv = await fs.readFile('data/销售 数据.csv', 'utf8');
-  const expectedRows = csv.replace(/^\uFEFF/, '').trim().split(/\r?\n/).length - 1;
-  verification = await verifyRun({
-    config,
-    runId: executed.runId,
-    verified: summary.rowCount === expectedRows,
-    details: {
-      check: 'independently recomputed CSV row count',
-      reportedRows: summary.rowCount,
-      expectedRows,
-    },
-  });
+```sh
+sh install.sh
+```
+
+安装器会把应用装到项目自己的 `.skill-conductor/app`，优先使用现有 Node 20.11+；没有时自动下载官方 Node 24.22.3 并按固定 SHA256 校验，存放在 `.skill-conductor/runtime`。不需要管理员权限，不修改 PATH/profile/TEMP/全局 npm。离线测试可用本地归档（`-ArchivePath` / `--archive`）。安装完成后自动运行 `setup`，可加 `-HostName` / `--host` 生成宿主配置。
+
+## 首次运行状态要这样理解
+
+| 状态 | 含义 | 下一步 |
+| --- | --- | --- |
+| 缺少运行时 | 安装器自动下载并校验便携 Node | 等待完成，无需用户手动安装 |
+| `ready` | 发现有效用户技能 | 生成/重载宿主 MCP 配置，继续任务 |
+| 宿主配置 `configured` / `already_configured` | 项目配置已写入/一致 | **需要宿主重载或启用 MCP server** |
+| `patch_required` | 现有 JSONC/无效 JSON/非本产品 DSH bundle 被保留 | 合并生成的 patch；没有伪造“已连接” |
+| `native_unverified` | DSH 本地 bundle 已生成但未原生安装 | 有 DSH 插件工具则安装；否则要求宿主激活 |
+| `no_user_skills` | 没有发现现有技能（空目录不是 demo） | 安装 agent 先检查当前宿主的可见技能清单；仍没有就说明现状并继续任务 |
+| `no_valid_user_skills` | 有 SKILL.md 但元数据不可用 | 报告具体错误，不伪造可用 |
+
+`setup` 是幂等的。旧的本产品 demo-only 配置会先备份再迁移到真实技能根，保留 owner 的 ask/auto、assistance 开关和频率设置，并移除 demo 脚本信任；demo 文件本身不会被删除。
+
+## 支持技能根（按需、受限发现）
+
+项目根：`.cursor/skills`、`.workbuddy/skills`、`.codebuddy/skills`、`.qoder/skills`、`.dsh/skills`、`.opencode/skills`、`.claude/skills`、`.codex/skills`、`.agents/skills`、`skills`。
+
+用户根：`~/.cursor/skills`、`~/.workbuddy/skills`、`~/.codebuddy/skills`、`~/.qoder/skills`、`~/.dsh/skills`、`~/.config/opencode/skills`、`~/.opencode/skills`、`~/.claude/skills`、`~/.codex/skills`、`~/.agents/skills`；Windows 另含 `%APPDATA%/opencode/skills`。Codex 插件缓存只做有界 `skills` 目录发现。
+
+- 不做全盘扫描，不安装/执行第三方技能，不默认使用打包 demo。
+- 相同 realpath 去重，保留 host/scope provenance 和稳定 namespace/ID。
+- 在已知根里检测隐藏技能目录，也支持显式 `--include-hidden`。
+- 新发现的根一律 `trusted:false`；已有根的信任不会被“发现”自动授予或提升。
+
+## 平台与宿主支持矩阵
+
+状态列严格区分：**官方 schema**（按公开文档生成）、**本仓库协议测试**（实际启动生成的 command+args 并完成 MCP stdio initialize/tools/list）、**原生应用验证**（是否真的打开并操作了桌面/CLI 客户端）。没有观察到就不写“原生已验证”。
+
+| 宿主 | 项目配置 | 官方 schema | 本仓库 stdio 协议测试 | 原生应用 |
+| --- | --- | --- | --- | --- |
+| Cursor | `.cursor/mcp.json`，`mcpServers` | 是 | 是（生成命令实际握手） | **未声称**；本机未自动化 Cursor 桌面 |
+| WorkBuddy / CodeBuddy | `.workbuddy/mcp.json`，`mcpServers` | 是 | 是 | **未声称**；本机无 WorkBuddy CLI |
+| Qoder | `.mcp.json`；也文档化 `.qoder/settings.json` | 是 | 是（CLI 项目配置；IDE 重载另计） | **未声称** |
+| DeepSeek Harness | `.skill-conductor/integrations/deepseek-harness/`：`cordis.patch.yml` + `package.json` | 是（Cordis `- insert:` patch + `dsh.bundle.patch`） | 是（从生成字段实际握手） | **未声称**；未执行原生插件安装 |
+| OpenCode | `opencode.json` 的 `mcp.servers` | 是 | 是（legacy 结构） | **0.3.0 已在 2.3.0 原生验证**：读取项目技能并由 max 提交推荐 |
+| 通用 SDK / MCP | `.skill-conductor/mcp.json` stdio descriptor | 是（通用协议） | 是 | 不是原生 app connector |
+
+DeepSeek Harness 生成的是**可安装本地 bundle**，不是把 `mcpServers` 硬塞进 Cordis。若目标 DSH 实际加载了 bundle 才能标记原生；否则只报告 schema/protocol 和 `native_unverified`。更细的证据边界见 [`docs/platform-support.md`](docs/platform-support.md)。
+
+本次独立安装包验收、真实无 Node 的 Windows 安装，以及 OpenCode max 从用户目录选择技能的记录，见 [`docs/user-install-test-report.md`](docs/user-install-test-report.md)。原生客户端尚未实测的项目不会写成“全部平台已原生验证”。
+
+操作系统：Windows（PowerShell 5.1+）和 Linux（POSIX sh）有本地/CI 覆盖；macOS 有 `install.sh` 入口，但本开发环境未原生运行 macOS，不声称 macOS 原生验证。CI 矩阵为 Windows/Linux + Node 20/22/24，离线默认。
+
+## 手动 owner CLI
+
+```text
+skill-conductor setup [--host cursor|workbuddy|qoder|deepseek-harness|opencode|generic]
+    [--root PATH ...] [--include-hidden] [--verify-host] [--no-host-config] [--config PATH]
+skill-conductor doctor [--config PATH]
+skill-conductor list [--config PATH]
+skill-conductor route TASK [--config PATH] [--material FILE ...] [--phase X] [--recommend FILE]
+skill-conductor run TASK [--config PATH] [--material FILE ...] [--phase X] [--mode ask|auto]
+skill-conductor choose RUN_ID [--config PATH] (--skills ID,ID | --skip) [--activate-only]
+skill-conductor show RUN_ID [--config PATH]
+skill-conductor runs [--config PATH]
+skill-conductor settings show|set ... [--config PATH]
+skill-conductor interactive [--config PATH]
+skill-conductor mcp [--config PATH]
+```
+
+- `setup`：发现/迁移/生成宿主配置；幂等；不覆盖自定义配置。
+- `doctor`：只读健康检查，不运行 demo、不激活/执行技能。
+- `list`：返回真实技能元数据；空目录返回 `status:"no_user_skills"`。
+- `route`：只路由/推荐；ask 下不加载正文、不执行。
+- `run`：ask 下返回 pending；owner `choose` 后才按持久化意图执行。
+- `mcp`：stdio JSON-RPC；stdout 只有协议消息，诊断写 stderr。
+- 未初始化时，`list`/`route`/`run`/`interactive`/`doctor`/MCP 启动会自动创建本地用户技能配置并写 stderr 状态，不复制 demo。
+
+`--recommend FILE` 是宿主 agent 的推荐入口：
+
+```json
+{
+  "selected": [
+    { "id": "cursor-project:sales-report", "reason": "英文描述匹配中文销售报告需求", "confidence": 0.92 }
+  ]
 }
 ```
 
-- 自定义 selector：`prepareTask({ selector: async ({ task, phase, materials, candidates }) => ({ selected: [...] }) })`。返回值仍经过严格校验：只能使用候选集中真实存在的 ID，置信度、步骤和数量都有界；模型给出的路径、命令、正文不会被采纳。
-- 宿主执行器：`prepareTask` / `chooseRun` / `resumeRun` 可传 `executor`。没有受信任脚本时，激活正文和资源交给宿主；`handoff` 不等于执行成功。
-- 每一步重新路由：见 `examples/sdk-before-each-step.mjs`。新的 `phase` / `observations` 会生成新的 run；会话自己的选择由调用方保存，不会因为重路由被静默改写。
-- 自定义 selector + 宿主执行器：见 `examples/custom-selector-host-executor.mjs`。
+它只接受当前目录中的精确 ID；未知/重复/阻塞/超量/非法字段会显式失败。推荐不是审批、不是设置、不是信任。
 
-## 自适应触发
-
-`assistance.enabled` 是独立于 ask/auto 的总开关。关闭时在读取材料、扫描目录和调用选择器之前短路，返回 `status: "disabled"`；不会伪造 `no_match`，且 pending 的 `choose`/`resume`/MCP 激活都会被拒绝。历史仍可读。
-
-profile 为 `manual` / `conservative` / `balanced` / `proactive` / `custom`，默认 `balanced`：
-
-- 新任务：明显寒暄、一句话直接修改/解释会跳过；明确文件处理、专门输出或宿主 `needsSkill=true` 会触发发现；模糊文本采用谨慎回退（中文和英文一致），不会因为英文词法而隐藏中文任务。
-- 同任务同阶段 routine continuation：复用已激活决策和上下文，不再次调用选择器；返回 `status:"reused"`、`sourceRunId`、`context`，并明确 `executedForThisEvent:false`。同格式新输入只复用技能选择，不把旧计算结果当成新结果。
-- 实质 `phase` / 材料族 / `requirementsKey` 变化会重新判断；普通措辞编辑、observation 或文件 mtime 不会被猜成阶段变化。
-- 失败指纹默认第 2 次才触发，触发一次后在实质变化前不重复；交付复查默认关闭；每任务自动检查预算默认 12，耗尽时显式返回 `budget_exhausted`，手动请求可越过预算但不能越过总开关/信任/审批。
-- 用户 `--skip` 默认只抑制当前 phase，直到材料/需求/阶段变化或手动请求。
-- 不在启动时持久化 pending 的重复提示：同一指纹直接返回同一 `runId`。
-
-状态按 **workspace + `sessionId` + `taskId`** 隔离，同一 taskId 的新 session 不能继承审批/pending/no-match/skip/上下文/预算，也不会把“同一任务”当成隐式批准。`init` 只写 `enabled`/`profile`，不会把 balanced 的 triggers/budget 固化成覆盖，因此切换 profile 会应用所选 preset。缓存复用前校验配置/信任、目录签名和已选 SKILL.md/sidecar/脚本 hash；真正激活仍走原有 stale hash/trust 检查。MCP 每次 `tools/call` 重新读取配置，因此运行中的 MCP 进程会在下一次请求看到所有者关闭总开关；不支持的顶层设置参数先返回显式 isError。
-
-公开可复现计数器示例：`node examples/adaptive-event-sequence.mjs`。它使用确定性 synthetic selector callback，对比 naive 每步路由与 adaptive 的事件序列；**不是实时语义准确率**。完整说明见 [`docs/adaptive-triggering.md`](docs/adaptive-triggering.md)。
-
-## 选择器模式
-
-配置 `selector.mode`：
-
-| 模式 | 说明 | 是否语义 |
-| --- | --- | --- |
-| `lexical` | 默认离线 BM25 风格元数据匹配，支持中文 bigram、正/负 trigger。 | **否，明确标记 lexical** |
-| `http` | OpenAI chat-completions 兼容端点，`baseURL` + `model` + key 环境变量；响应流上限 4 MiB，已知 key 在成功内容和错误体里脱敏。 | 取决于端点；本仓库不宣称准确率 |
-| `opencode` | 可选 OpenCode CLI 适配器。长 prompt 通过临时 `--file` 附件传递，短消息触发；尊重 `standalone` / `archived`。 | 取决于所选模型 |
-| SDK callback | 宿主注入 `selector` 函数，核心不依赖 OpenCode。 | 取决于宿主 |
-
-小目录（默认 <= 40）会把**全部**候选元数据交给语义选择器，即使词法分数为 0，避免中文查询被英文词法预筛隐藏。大目录先用有界词法预筛，再交给语义选择器。
-
-可直接参考三份配置：`examples/config.demo.json` 是无需模型的本地演示；`examples/config.http.example.json` 可接本地或托管的兼容 HTTP 模型（填写 `model`、`baseURL`，按需设置密钥环境变量）；`examples/config.opencode.example.json` 是可选 OpenCode 适配器，使用前设置 `SKILL_CONDUCTOR_OPENCODE_CLI`。核心 SDK 的 `selector` 回调可以直接使用你自己的 agent/model。
-
-控制器曾用精确的 `opencode-go/deepseek-v4.1-flash`（low variant）做一次真实集成探测：48 个本机已有 skill 全部进入候选，中文“Excel/公式/图表”改写命中了现有 spreadsheets skill，并停留在 `awaiting_choice`。这是一次集成示例，不是准确率或 benchmark 证据。开发者未在本会话重复运行实时模型。
-
-## 发现与材料
-
-- 递归扫描配置 roots 下的 `SKILL.md`；兼容现有格式。支持 `conductor.json` sidecar：`triggers`、`avoidTriggers`、`tags`、`requiredCapabilities`、`dependencies`、`conflicts`、`resources`、`executable`、`whenToUse`。
-- 支持 YAML frontmatter 子集：普通/引号标量、`|`/`>` 块文本、列表、注释、BOM、CRLF，以及常见的可选 `metadata` 映射。超出支持范围的结构会给出警告或错误，保留可核实的字段。
-- 稳定 ID 基于 namespace + 相对路径；重名会标记 ambiguity 并要求精确 ID。符号链接有 visited 防护；解析到 root 外的真实路径不会继承 root 信任。
-- `SKILL.md` / `conductor.json` / 入口脚本内容都纳入 hash；决定和恢复时会重新校验，防止“等待选择期间文件被改”。
-- 材料仅限显式文件：`.txt`、`.md`、`.markdown`、`.json`、`.jsonl`、`.csv`、`.tsv`、`.html`、`.htm`；有单文件/总量/数量/截断限制，带 SHA-256 与来源。URL 不自动抓取；不支持的二进制只给元数据，不伪造提取内容。材料内容是 **DATA**，不能变成指令或授权。
-
-## 受信任执行
-
-只有同时满足以下条件才运行脚本：
-
-1. `execution.enabled` 为 true；
-2. 技能 ID 在 `execution.trustedSkillIds`；
-3. 若有 `execution.allowlist`，技能 ID 也在其中；
-4. sidecar 声明 `executable.runtime: "node"` 和相对入口；
-5. 入口经 realpath 校验仍在 skill 目录内（防路径穿越/junction 逃逸）。
-
-执行使用 `spawn(process.execPath, [script], { shell: false })`，不解析 markdown 或模型返回的 shell。stdin 只传结构化 JSON；stdout/stderr 有字节上限；超时会终止**实际进程树**并记录 `timeout`；非零退出记录 `failed`。产物在 run 目录内清点大小与 hash。
-
-这**不是**操作系统沙箱。受信任脚本仍以当前用户权限运行。没有可执行入口的 skill 只交给宿主执行器，状态是 `activated` / `handoff`，不是成功。
-
-## 持久决定与原子性
-
-`runs\<runId>.json` 保存候选、推荐、材料引用、hash、模式、意图、状态与产物；`runs\<runId>.events.jsonl` 记录事件。
-
-- 写入使用同目录临时文件 + rename。
-- 跨进程文件锁防止并发写；`resumeClaim` 确保同一决定不会被两个进程执行两次。
-- pending 计划有 `planHash`；决定时可传 `decisionToken`，拒绝陈旧 UI。
-- 决定时重新校验技能正文、sidecar 和执行脚本 hash；配置指纹包含 roots、能力、执行开关、trusted ID、allowlist、超时/输出策略、MCP 执行许可等，prepare 后改动会要求重新 prepare。
-- 未知/伪造 ID、重复决定、跳过与执行的冲突都会被显式拒绝。
-- 只写配置的 run 目录，不修改用户全局配置、既有 skill 或其他会话。
-
-## MCP stdio
+## MCP stdio 与当前宿主智能
 
 ```powershell
-node bin\skill-conductor.mjs mcp --config examples\config.demo.json
+node bin\skill-conductor.mjs mcp --config .skill-conductor\config.json
 ```
 
-最小 JSON-RPC 2.0 换行分隔协议：`initialize`、`notifications/initialized`、`tools/list`、`tools/call`、`ping`。stdout 只输出协议消息。
+最小 JSON-RPC 2.0 换行分隔协议：`initialize`、`notifications/initialized`、`tools/list`、`tools/call`、`ping`。工具：
 
-工具：
+- `health`：运行时、配置、根、技能数、宿主配置/reload 状态；
+- `list_skills`：真实用户技能清单；
+- `prepare_skills`：推荐/路由；可选 `recommendation` 字段；
+- `get_run`、`activate_run`、`read_resource`。
 
-- `list_skills`
-- `prepare_skills`（不接收 mode 或设置；mode/信任只来自受信任配置；可带 `taskId`、`sessionId`、`event` 与 `activity` 任务事件数据）
-- `get_run`
-- `activate_run`（已批准才加载；否则原样返回 awaiting_choice）
-- `read_resource`（仅激活 run 中声明的资源）
+没有 `approve` / `decide` / `set_mode` / `update_settings` 工具。审批和设置只属于 owner CLI/受信任宿主 UI。推荐流程：宿主先读 `list_skills` 元数据，再由当前宿主模型在 `prepare_skills.recommendation` 中提交精确 ID/理由；这样中文任务可以用英文描述的现有技能，不需要额外 OpenCode 或付费 key。`initialize.instructions` 内置同一提示。
 
-没有 `approve` / `decide` / `set_mode` / `update_settings` 工具。审批与设置只来自所有者 CLI 或受信任宿主 UI/回调。每次 `tools/call` 会重新读取受信任配置，因此 MCP 运行期间由 CLI 关闭 `assistance.enabled`，下一次请求即生效；配置损坏会显式失败而不是回退旧配置。`prepare_skills` 的自主执行还要求 `mcp.allowExecution` 与 `execution.enabled` 同时为 true；否则即使配置是 auto，也只路由/激活。通用聊天集成应把 pending 候选和理由展示给用户，例如读取 result 中的 `candidates` 与 `recommendation` 并生成问题。
+每次 `tools/call` 重新读取受信任配置；owner 关闭 `assistance.enabled` 后，运行中的 MCP 下一次请求立即返回 `disabled`。`prepare_skills` 的自主执行还要求 `mcp.allowExecution` 与 `execution.enabled` 同时为 true；否则只路由/激活。
 
-这是有文档边界的最小适配器，不是完整 MCP SDK 或安全边界声明。
+## 安全边界
 
-## 测试与离线 eval
+- 默认 ask；`auto` 必须显式配置或显式 CLI/SDK 授权。空输入、超时、模型输出都不是批准。
+- `assistance.enabled=false` 在读取材料、扫描目录、调用选择器之前短路；MCP/推荐/SDK 都不能绕过。
+- 激活、执行、独立验证分开记录。`activated`/`handoff` 不等于执行成功。
+- 只有 `execution.enabled=true` 且 ID 在 `trustedSkillIds`/`allowlist` 中的 Node 入口才会执行；`shell:false`，超时杀进程树，输出/产物有界。不是 OS 沙箱。
+- 材料只读显式文件；内容是 DATA，不是授权。URL 不自动抓取。
+- 发现阶段只读元数据，不执行技能脚本；技能特定依赖/凭证在真正使用时检查，缺失如实报告。
+- 不修改用户全局配置、既有技能或其他会话；安装器/生成器只写项目内 `.skill-conductor`、选定项目宿主配置和必要备份。
 
-实际可运行命令（Node v24.22.1 已验证）：
+## 测试与已知限制
 
 ```powershell
-node --test tests\foundation.test.mjs tests\runtime.test.mjs tests\adaptive.test.mjs tests\mcp-cli.test.mjs tests\process-cleanup.test.mjs tests\http-selector.test.mjs tests\onboarding-cli.test.mjs
-node examples\adaptive-event-sequence.mjs
+node --test tests\foundation.test.mjs tests\runtime.test.mjs tests\adaptive.test.mjs tests\mcp-cli.test.mjs tests\process-cleanup.test.mjs tests\http-selector.test.mjs tests\onboarding-cli.test.mjs tests\onboarding-setup.test.mjs
 node evals\run-eval.mjs
 ```
 
-`package.json` 的 `test` 脚本使用同一组显式文件；如果环境里有 npm，也可以运行 `npm test`。本机 Windows / Node 24.22.3 已验证 50 项项目测试全部通过（数量以本轮实际输出为准）。`examples/adaptive-event-sequence.mjs` 是 synthetic callback 计数器对比，不是准确率 benchmark。GitHub Actions 配置了 Windows/Linux 与 Node 20/22/24；云端矩阵的实际结果以仓库运行记录为准。
+- 离线测试覆盖：发现/去重/provenance/隐藏根、无技能诚实状态、旧 demo 迁移/备份、自定义配置保留、MCP 首启自动配置、`health`、宿主 JSON 合并/凭证不泄露/真实 stdio 握手、MCP 名称冲突保留、DSH `- insert:` bundle、JSONC patch、宿主推荐选择真实用户技能、未知/阻塞拒绝、安装器本地归档/哈希失败/遍历拒绝。
+- `evals/run-eval.mjs` 是 **synthetic-lexical-fixtures** 的离线开发检查，不是语义准确率、模型 benchmark 或生产保证。
+- 不提供准确率 benchmark；语义质量取决于当前宿主模型。
+- `http` / `opencode` 适配器仍可选，但不是普通用户前提；本轮不重复声称实时模型质量。
+- 没有自动学习、反馈改写技能、Web UI 或完整 MCP SDK。
+- macOS 仅提供脚本入口，未在本机原生运行；其他桌面客户端未自动化原生验证。
 
-`evals\run-eval.mjs` 是 **synthetic-lexical-fixtures** 的离线开发检查，覆盖中英文、无匹配与 avoid trigger，只验证词法排序，不代表语义准确率或实时模型质量。
+## 文档
 
-## 已知限制
+- 给 agent 的安装契约：[INSTALL.md](INSTALL.md)
+- 宿主/MCP 集成与 DSH bundle：[docs/host-integration.md](docs/host-integration.md)
+- 平台矩阵与证据边界：[docs/platform-support.md](docs/platform-support.md)
+- 自适应触发：[docs/adaptive-triggering.md](docs/adaptive-triggering.md)
+- 来源与取舍：[ATTRIBUTION.md](ATTRIBUTION.md)
 
-- 不安装、不下载、不自动执行第三方 skill。
-- 语义选择质量取决于宿主/模型；本仓库不提供准确率 benchmark。
-- `http` / `opencode` 适配器的错误与格式处理有界且显式，但实时模型行为仍需集成方验证。
-- 没有自动学习、反馈改写 skill、Web UI 或完整 MCP SDK。
-- 执行不是沙箱；脚本必须由所有者显式信任。
-- 不负责跨机器同步、发布或全局配置迁移。
+## 可选 demo 与开发者检查（不属于普通安装）
 
-## License 与来源
+```powershell
+node bin\skill-conductor.mjs demo
+node bin\skill-conductor.mjs init --demo
+```
 
-MIT。设计借鉴与边界见 [ATTRIBUTION.md](ATTRIBUTION.md)，完整来源审查见 `research/upstream-review.json`。本实现是工程组合，不声称学术独创，也不把测试通过包装成生产准确率。
+demo 使用仓库自带第一方示例技能与合成 CSV，显式 auto 执行两个受信任脚本并独立复核数字；它不调用模型。`setup` 永远不会运行 demo，也不会把 demo 根加入默认用户目录。
+
+## 来源与许可
+
+MIT。设计借鉴、来源与取舍见 [ATTRIBUTION.md](ATTRIBUTION.md) 和 `research/upstream-review.json`。本实现是工程组合，不声称学术独创，也不把测试通过包装成生产准确率。
