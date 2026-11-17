@@ -66,6 +66,7 @@ export async function makeConfig(dir, {
   timeoutMs = 5000,
   mcpAllowExecution = false,
   stopOnError = true,
+  assistance = null,
 } = {}) {
   const ids = skills.map((skill) => `fixture:${skill}`);
   const raw = {
@@ -74,6 +75,7 @@ export async function makeConfig(dir, {
     selector,
     policy: { mode: auto ? 'auto' : 'ask' },
     capabilities,
+    ...(assistance ? { assistance } : {}),
     execution: {
       enabled: executionEnabled,
       allowlist: allowlist ?? ids,
@@ -94,7 +96,7 @@ export async function makeConfig(dir, {
     },
     mcp: { allowExecution: mcpAllowExecution, maxInputBytes: 1024 * 1024 },
   };
-  const config = await normalizeConfig(raw);
+  const config = await normalizeConfig(raw, { baseDir: dir });
   return { config, raw };
 }
 

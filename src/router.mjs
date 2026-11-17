@@ -1,5 +1,14 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import {
+  catalogSignature,
+  evaluateAdaptiveTrigger,
+  recordNoMatch,
+  recordPending,
+  recordReuse,
+  recordRunDecision,
+  recordSelectorCall,
+} from './adaptive.mjs';
 import { analyzePlan, resolveReference } from './capabilities.mjs';
 import { catalogSummary, discoverCatalog, loadSkillContent } from './catalog.mjs';
 import { normalizeConfig } from './config.mjs';
@@ -201,9 +210,23 @@ async function rankingFor(config, catalog, task, phase, observations, selector) 
   });
 }
 
-function baseRecord({ runId, mode, intent, config, catalog, materials, score, recommendation, candidates, plan, selector }) {
+function baseRecord({
+  runId,
+  mode,
+  intent,
+  config,
+  catalog,
+  materials,
+  score,
+  recommendation,
+  candidates,
+  plan,
+  selector,
+  identity = null,
+  adaptive = null,
+}) {
   const record = {
-    schema: 'skill-conductor/run/v0.1',
+    schema: 'skill-conductor/run/v0.2',
     runId,
     createdAt: nowIso(),
     updatedAt: nowIso(),
@@ -212,6 +235,10 @@ function baseRecord({ runId, mode, intent, config, catalog, materials, score, re
     status: 'awaiting_choice',
     task: materials.items.find((item) => item.kind === 'task')?.text ?? '',
     phase: materials.items.find((item) => item.kind === 'phase')?.text ?? null,
+    taskId: identity?.taskId ?? null,
+    sessionId: identity?.sessionId ?? null,
+    taskKey: identity?.taskKey ?? null,
+    adaptive: adaptive ?? null,
     configFingerprint: config.fingerprint,
     configPath: config.configPath,
     catalogHash: catalog.catalogHash,
@@ -257,6 +284,94 @@ function baseRecord({ runId, mode, intent, config, catalog, materials, score, re
   return record;
 }
 
+async function createGateRecord({
+  config,
+  mode,
+  intent,
+  task,
+  phase,
+  status,
+  trigger,
+  identity,
+  sourceRunId = null,
+  context = null,
+  instruction = null,
+}) {
+  const runId = randomId('run');
+  const store = new RunStore({ runDir: config.execution.runDir });
+  await store.ensure();
+  const record = {
+    schema: 'skill-conductor/run/v0.2',
+    runId,
+    createdAt: nowIso(),
+    updatedAt: nowIso(),
+    mode,
+    intent,
+    status,
+    task: String(task ?? ''),
+    phase: phase ?? null,
+    taskId: identity?.taskId ?? null,
+    sessionId: identity?.sessionId ?? null,
+    taskKey: identity?.taskKey ?? null,
+    adaptive: { trigger, ...(sourceRunId ? { sourceRunId } : {}) },
+    configFingerprint: config.fingerprint,
+    catalogHash: null,
+    catalogCounts: null,
+    selector: {
+      mode: 'adaptive-gate',
+      semantic: false,
+      label: 'adaptive-gate',
+      abstainReason: null,
+      ambiguous: false,
+      diagnostics: null,
+      offeredAll: false,
+      provider: null,
+    },
+    materials: [],
+    materialErrors: [],
+    candidates: [],
+    recommendation: {
+      selected: [],
+      abstainReason: null,
+      steps: [],
+      label: 'adaptive-gate',
+      ambiguity: null,
+    },
+    plan: { ok: true, selected: [], steps: [], orderedSteps: [], blockers: [] },
+    options: { single: true, multiple: true, skip: true, maxSelection: config.selector.maxSelection },
+    states: {
+      routed: false,
+      awaitingChoice: false,
+      activated: false,
+      executed: false,
+      independentlyVerified: false,
+      suppressed: status === 'suppressed',
+      reused: status === 'reused',
+      disabled: status === 'disabled',
+    },
+    decision: null,
+    activation: null,
+    execution:
+      status === 'reused'
+        ? {
+            status: 'not_executed',
+            reason:
+              'Cache reuse returns prior context only. It never counts as a new execution; request event="manual_request" for a fresh run.',
+            steps: [],
+          }
+        : null,
+    verification: null,
+    resumeClaim: null,
+    sourceRunId,
+    reused: status === 'reused',
+    executedForThisEvent: false,
+    context,
+    ...(instruction ? { instruction } : {}),
+  };
+  await store.create(record);
+  return record;
+}
+
 /**
  * Prepare a run. Ask mode only ranks/recommends and persists an awaiting_choice
  * record; it never loads a skill body or runs a script. Auto mode is an explicit
@@ -274,9 +389,141 @@ export async function prepareTask({
   executor = null,
   verifier = null,
   cwd = process.cwd(),
+  taskId = null,
+  sessionId = null,
+  event = null,
+  activity = null,
 }) {
   if (intent !== 'run' && intent !== 'route') throw new ConfigError('intent must be run or route');
   const requestedMode = assertMode(mode ?? config.policy.mode);
+
+  // The cheap gate runs BEFORE materials collection and catalog discovery so an
+  // OFF switch cannot leak reads, scans, selector calls or executor calls.
+  const gate = await evaluateAdaptiveTrigger({
+    config,
+    taskId,
+    sessionId,
+    task,
+    files,
+    phase,
+    event,
+    activity,
+  });
+  const identity = {
+    taskId: taskId ?? null,
+    sessionId: sessionId ?? null,
+    taskKey: gate.session?.taskKey ?? null,
+  };
+  if (gate.action === 'disabled' || gate.action === 'suppress') {
+    const status = gate.action === 'disabled' ? 'disabled' : 'suppressed';
+    const run = await createGateRecord({
+      config,
+      mode: requestedMode,
+      intent,
+      task,
+      phase,
+      status,
+      trigger: gate.trigger,
+      identity,
+    });
+    return { run, pendingChoice: null, trigger: gate.trigger };
+  }
+  if (gate.action === 'pending') {
+    const runId = gate.trigger?.pendingRunId;
+    try {
+      const existing = await getRun({ config, runId });
+      if (existing.status === 'awaiting_choice') {
+        return { run: existing, pendingChoice: pendingView(existing), trigger: gate.trigger };
+      }
+      // The owner may have decided since the pending cache entry was saved.
+      // Refresh the session so a skip suppresses and a completed run can be
+      // returned as existing context with executed=false for this event.
+      await recordRunDecision({ config, run: existing, activated: Boolean(existing.context) || existing.decision?.skip });
+      if (existing.decision?.skip) {
+        gate.trigger = {
+          ...gate.trigger,
+          action: 'suppress',
+          reasonCode: 'owner_skipped_phase',
+          explanation: 'The previously pending run was skipped by the owner; this phase stays suppressed until a material/requirement change or manual request.',
+          sourceRunId: existing.runId,
+        };
+        const run = await createGateRecord({
+          config,
+          mode: requestedMode,
+          intent,
+          task,
+          phase,
+          status: 'suppressed',
+          trigger: gate.trigger,
+          identity,
+        });
+        return { run, pendingChoice: null, trigger: gate.trigger };
+      }
+      if (existing.context) {
+        gate.trigger = {
+          ...gate.trigger,
+          action: 'reuse',
+          reasonCode: 'pending_completed_reuse',
+          explanation:
+            'The previously pending run is already decided and activated. Returning its context; this event did not execute anything.',
+          sourceRunId: existing.runId,
+        };
+        await recordReuse({ config, taskId: identity.taskId, sessionId: identity.sessionId });
+        const run = await createGateRecord({
+          config,
+          mode: requestedMode,
+          intent,
+          task,
+          phase,
+          status: 'reused',
+          trigger: gate.trigger,
+          identity,
+          sourceRunId: existing.runId,
+          context: existing.context,
+          instruction:
+            'Reused an already-decided run context only. executed=false for this event; no script or host executor ran. Send event="manual_request" for fresh work.',
+        });
+        return { run, pendingChoice: null, trigger: gate.trigger };
+      }
+    } catch {
+      // A stale pending pointer is re-evaluated as a new check below.
+    }
+    gate.action = 'trigger';
+    gate.trigger = { ...gate.trigger, action: 'trigger', reasonCode: 'pending_stale', explanation: 'The persisted pending run is no longer awaiting a choice; checking routing again.' };
+  }
+  if (gate.action === 'reuse') {
+    const sourceRunId = gate.trigger?.sourceRunId;
+    try {
+      const previous = await getRun({ config, runId: sourceRunId });
+      if (previous.context) {
+        await recordReuse({ config, taskId: identity.taskId, sessionId: identity.sessionId });
+        const run = await createGateRecord({
+          config,
+          mode: requestedMode,
+          intent,
+          task,
+          phase,
+          status: 'reused',
+          trigger: gate.trigger,
+          identity,
+          sourceRunId,
+          context: previous.context,
+          instruction:
+            'Reused prior activated context only; no selector, script or host executor ran for this call. New or changed input may require actual work using these instructions. Send event="manual_request" to force a fresh check.',
+        });
+        return { run, pendingChoice: null, trigger: gate.trigger };
+      }
+    } catch {
+      // fall through to a new check; stale cache must not be presented as valid.
+    }
+    gate.trigger = {
+      ...gate.trigger,
+      action: 'trigger',
+      reasonCode: 'cache_invalidated_context',
+      explanation: 'The cached decision had no readable activated context; re-checking routing.',
+    };
+  }
+
   const materials = await collectMaterials(
     { task, files, phase, observations },
     { cwd, limits: config.materials },
@@ -292,6 +539,9 @@ export async function prepareTask({
     phase,
     selector,
   });
+  if (identity.taskId) {
+    await recordSelectorCall({ config, taskId: identity.taskId, sessionId: identity.sessionId });
+  }
   const candidates = buildCandidates(config, catalog, ranking, recommendation);
   const expanded = expandRecommendation(recommendation, catalog, candidates, config);
   const expandedRecommendation = { ...recommendation, selected: expanded };
@@ -304,6 +554,15 @@ export async function prepareTask({
   const runId = randomId('run');
   const store = new RunStore({ runDir: config.execution.runDir });
   await store.ensure();
+  const adaptive = {
+    trigger: gate.trigger,
+    fingerprint: gate.trigger?.fingerprint ?? null,
+    phase: gate.trigger?.phase ?? phase ?? null,
+    materialFamilies: gate.trigger?.materialFamilies ?? [],
+    requirementKey: gate.trigger?.requirementKey ?? null,
+    catalogSignature: await catalogSignature(config),
+    automatic: gate.trigger?.automatic ?? false,
+  };
   const record = baseRecord({
     runId,
     mode: requestedMode,
@@ -316,24 +575,29 @@ export async function prepareTask({
     candidates,
     plan,
     selector: selectorMeta(config, recommendation, ranking),
+    identity,
+    adaptive,
   });
 
   await store.create(record);
   // No applicable skill is a terminal no-match, not an empty approval hurdle.
   // This applies to ask and auto alike; candidates/diagnostics stay recorded.
   if (!expandedRecommendation.selected || expandedRecommendation.selected.length === 0) {
-    return store.update(runId, (current) => {
+    const run = await store.update(runId, (current) => {
       current.status = 'no_match';
       current.states.awaitingChoice = false;
       current.states.noMatch = true;
       current.recommendation.abstainReason =
         current.recommendation.abstainReason || 'selector returned no usable skill';
       return current;
-    }).then((run) => ({ run, pendingChoice: null }));
+    });
+    await recordNoMatch({ config, run });
+    return { run, pendingChoice: null, trigger: gate.trigger };
   }
 
   if (requestedMode === 'ask') {
-    return { run: record, pendingChoice: pendingView(record) };
+    await recordPending({ config, run: record, fingerprint: adaptive.fingerprint });
+    return { run: record, pendingChoice: pendingView(record), trigger: gate.trigger };
   }
 
   // Auto mode: an explicit opt-in decision, still validated by the same store.
@@ -344,7 +608,7 @@ export async function prepareTask({
       current.states.blocked = true;
       current.plan = plan;
       return current;
-    }).then((run) => ({ run, pendingChoice: null }));
+    }).then((run) => ({ run, pendingChoice: null, trigger: gate.trigger }));
   }
   await store.decide(runId, {
     skills: expandedRecommendation.selected.map((entry) => entry.id),
@@ -360,7 +624,8 @@ export async function prepareTask({
     executeAllowed: intent === 'run',
     cwd,
   });
-  return { run, pendingChoice: null };
+  await recordRunDecision({ config, run, activated: Boolean(run.context) });
+  return { run, pendingChoice: null, trigger: gate.trigger };
 }
 
 export function pendingView(record) {
@@ -659,6 +924,12 @@ export async function resumeRun({
   executeAllowed = true,
   claimedBy = 'owner',
 }) {
+  if (!config.assistance?.enabled) {
+    throw new DecisionError(
+      'assistance_disabled',
+      'assistance.enabled is false; activation, execution and resuming pending approvals are disabled',
+    );
+  }
   const store = new RunStore({ runDir: config.execution.runDir });
   let run = await store.get(runId);
   if (run.configFingerprint && config.fingerprint !== run.configFingerprint) {
@@ -775,6 +1046,12 @@ export async function chooseRun({
   executor = null,
   verifier = null,
 }) {
+  if (!config.assistance?.enabled) {
+    throw new DecisionError(
+      'assistance_disabled',
+      'assistance.enabled is false; choose/approve and execution are disabled. Show/get history remains readable.',
+    );
+  }
   const store = new RunStore({ runDir: config.execution.runDir });
   const existing = await store.get(runId);
   if (existing.configFingerprint && config.fingerprint !== existing.configFingerprint) {
@@ -799,7 +1076,7 @@ export async function chooseRun({
     skip,
     skills: skip ? [] : skills,
   });
-  return resumeRun({
+  const outcome = await resumeRun({
     config,
     runId,
     executor,
@@ -807,6 +1084,12 @@ export async function chooseRun({
     executeAllowed: effectiveIntent === 'run',
     claimedBy: decidedBy,
   });
+  await recordRunDecision({
+    config,
+    run: outcome,
+    activated: Boolean(outcome.context) || outcome.status === 'skipped',
+  });
+  return outcome;
 }
 
 export async function verifyRun({ config, runId, verified, details = null, source = 'host-callback' }) {
@@ -880,6 +1163,7 @@ export async function withPolicyMode(config, mode) {
     },
     policy: { ...config.policy, mode },
     capabilities: config.capabilities,
+    assistance: config.assistance,
     execution: {
       ...config.execution,
       runDir: config.execution.runDir,

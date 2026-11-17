@@ -1,0 +1,20 @@
+{
+  "schema": "skill-conductor/adaptive-event-sequence/v0.1",
+  "label": "deterministic synthetic event sequence; not live semantic accuracy",
+  "taskId": "demo-adaptive-task",
+  "task": "继续整理这份 Markdown 材料并生成摘要",
+  "events": [
+    { "event": "new_task", "phase": "collect" },
+    { "event": "routine_continuation", "phase": "collect" },
+    { "event": "routine_continuation", "phase": "collect" },
+    { "event": "routine_continuation", "phase": "collect" },
+    { "event": "routine_continuation", "phase": "collect" },
+    { "event": "routine_continuation", "phase": "collect" },
+    { "event": "routine_continuation", "phase": "collect" },
+    { "event": "routine_continuation", "phase": "collect" },
+    { "event": "routine_continuation", "phase": "collect" },
+    { "event": "phase_change", "phase": "summarize", "activity": { "requirementsKey": "summary-v1" } },
+    { "event": "routine_continuation", "phase": "summarize" },
+    { "event": "routine_continuation", "phase": "summarize" }
+  ]
+}

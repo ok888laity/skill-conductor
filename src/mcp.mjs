@@ -1,9 +1,10 @@
 import readline from 'node:readline';
+import { loadConfig } from './config.mjs';
 import { toErrorObject } from './errors.mjs';
 import { getRun, listSkills, pendingView, prepareTask, resumeRun } from './router.mjs';
 
 const PROTOCOL_VERSION = '2024-11-05';
-const SERVER_INFO = { name: 'skill-conductor', version: '0.1.1' };
+const SERVER_INFO = { name: 'skill-conductor', version: '0.2.0' };
 
 const TOOLS = [
   {
@@ -14,7 +15,7 @@ const TOOLS = [
   {
     name: 'prepare_skills',
     description:
-      'Rank and recommend skills for a task and explicit materials. In ask policy this returns awaiting_choice when a skill is applicable, or no_match when the selector abstains; it never loads bodies or executes. Display choices to the owner; this tool cannot approve them.',
+      'Rank and recommend skills for a task and explicit materials. The cheap adaptive gate may return disabled/suppressed/reused/pending instead; it never loads bodies or executes. Display choices to the owner; this tool cannot approve them or change trusted settings.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -22,6 +23,38 @@ const TOOLS = [
         files: { type: 'array', items: { type: 'string' }, description: 'Explicit local material file paths' },
         phase: { type: 'string', description: 'Current workflow phase' },
         observations: { type: 'array', items: { type: 'string' }, description: 'New observations for rerouting' },
+        taskId: { type: 'string', description: 'Host-assigned stable task/session identity' },
+        sessionId: { type: 'string', description: 'Optional host session identity' },
+        event: {
+          type: 'string',
+          enum: [
+            'new_task',
+            'routine_continuation',
+            'phase_change',
+            'material_family_change',
+            'requirements_change',
+            'repeated_failure',
+            'delivery',
+            'manual_request',
+          ],
+          description: 'Explicit host task event. Omit for legacy one-shot behavior when taskId is absent.',
+        },
+        activity: {
+          type: 'object',
+          description:
+            'Host event signals, not observed telemetry: needsSkill, materialFamily/materialFamilies, requirementsKey, errorFingerprint, errorCount, manualRequest.',
+          properties: {
+            needsSkill: { type: 'boolean' },
+            materialFamily: { type: 'string' },
+            materialFamilies: { type: 'array', items: { type: 'string' } },
+            requirementsKey: { type: 'string' },
+            errorFingerprint: { type: 'string' },
+            errorCount: { type: 'integer' },
+            manualRequest: { type: 'boolean' },
+            hint: { type: 'string' },
+          },
+          additionalProperties: true,
+        },
       },
       required: ['task'],
       additionalProperties: false,
@@ -72,23 +105,113 @@ function textResult(value, isError = false) {
   };
 }
 
+/**
+ * Reload trusted config for each tool call. A long-running MCP process must not
+ * keep a stale assistance.enabled=true after the owner CLI turns assistance off.
+ * A malformed config fails the request instead of silently falling back.
+ */
+async function reloadTrustedConfig(config) {
+  if (!config.configPath) return config;
+  return loadConfig(config.configPath, { cwd: process.cwd() });
+}
+
+const PREPARE_KEYS = new Set([
+  'task',
+  'files',
+  'phase',
+  'observations',
+  'taskId',
+  'sessionId',
+  'event',
+  'activity',
+]);
+const PREPARE_EVENTS = new Set([
+  'new_task',
+  'routine_continuation',
+  'phase_change',
+  'material_family_change',
+  'requirements_change',
+  'repeated_failure',
+  'delivery',
+  'manual_request',
+]);
+
+/**
+ * Enforce the documented additionalProperties:false contract for arguments that
+ * look like model-controlled settings. This runs before the assistance OFF
+ * short-circuit so an unsupported mode/assistance field is an explicit error,
+ * not a plausible-looking successful `disabled` response.
+ */
+function validatePrepareArgs(args) {
+  const unsupported = Object.keys(args).filter((key) => !PREPARE_KEYS.has(key));
+  if (unsupported.length > 0) {
+    return { error: 'unsupported_arguments', unsupported, message: 'prepare_skills does not accept these fields' };
+  }
+  if (typeof args.task !== 'string' || args.task.trim() === '') {
+    return { error: 'invalid_arguments', message: 'task must be a non-empty string' };
+  }
+  if (args.files !== undefined) {
+    if (!Array.isArray(args.files) || args.files.some((item) => typeof item !== 'string' || item.trim() === '')) {
+      return { error: 'invalid_arguments', message: 'files must be an array of non-empty strings' };
+    }
+  }
+  if (args.observations !== undefined) {
+    if (
+      !Array.isArray(args.observations) ||
+      args.observations.some((item) => typeof item !== 'string')
+    ) {
+      return { error: 'invalid_arguments', message: 'observations must be an array of strings' };
+    }
+  }
+  for (const field of ['phase', 'taskId', 'sessionId']) {
+    if (args[field] !== undefined && (typeof args[field] !== 'string' || args[field].trim() === '')) {
+      return { error: 'invalid_arguments', message: `${field} must be a non-empty string when provided` };
+    }
+  }
+  if (args.event !== undefined && !PREPARE_EVENTS.has(args.event)) {
+    return { error: 'invalid_arguments', message: `unsupported event: ${String(args.event)}` };
+  }
+  if (args.activity !== undefined) {
+    if (!args.activity || typeof args.activity !== 'object' || Array.isArray(args.activity)) {
+      return { error: 'invalid_arguments', message: 'activity must be an object' };
+    }
+  }
+  return null;
+}
+
 async function callTool(config, name, args) {
   if (name === 'list_skills') return textResult(await listSkills({ config }));
   if (name === 'prepare_skills') {
+    const invalid = validatePrepareArgs(args);
+    if (invalid) return textResult(invalid, true);
     const result = await prepareTask({
       config,
       task: args.task,
       files: args.files ?? [],
       phase: args.phase ?? null,
       observations: args.observations ?? [],
+      taskId: typeof args.taskId === 'string' ? args.taskId : null,
+      sessionId: typeof args.sessionId === 'string' ? args.sessionId : null,
+      event: typeof args.event === 'string' ? args.event : null,
+      activity: args.activity && typeof args.activity === 'object' ? args.activity : null,
       // Mode intentionally comes only from trusted config; it is not a tool argument.
       // MCP execution requires an explicit mcp.allowExecution opt-in; otherwise a
       // trusted auto config may route/activate but must not run scripts.
       intent: config.mcp.allowExecution && config.execution.enabled ? 'run' : 'route',
     });
-    return textResult(result.pendingChoice ?? result.run);
+    return textResult({ ...(result.pendingChoice ?? result.run), ...(result.trigger ? { trigger: result.trigger } : {}) });
   }
   if (name === 'get_run') return textResult(await getRun({ config, runId: args.runId }));
+  if (!config.assistance?.enabled && (name === 'activate_run' || name === 'read_resource')) {
+    return textResult(
+      {
+        error: 'assistance_disabled',
+        message:
+          'assistance.enabled is false; activation and resource delivery are disabled. Existing run history remains readable via get_run.',
+      },
+      true,
+    );
+  }
   if (name === 'activate_run') {
     const run = await getRun({ config, runId: args.runId });
     if (run.status === 'awaiting_choice') return textResult(pendingView(run));
@@ -181,7 +304,8 @@ export async function startMcpServer({ config }) {
           send({ jsonrpc: '2.0', id, result: textResult({ error: 'arguments must be an object' }, true) });
           return;
         }
-        const result = await callTool(config, name, args);
+        const trusted = await reloadTrustedConfig(config);
+        const result = await callTool(trusted, name, args);
         send({ jsonrpc: '2.0', id, result });
         return;
       }

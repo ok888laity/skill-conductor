@@ -34,6 +34,7 @@ const config = await normalizeConfig(
     },
     policy: { mode: 'ask' },
     capabilities: loaded.capabilities,
+    assistance: loaded.assistance,
     execution: {
       enabled: false,
       trustedSkillIds: [],
@@ -59,6 +60,8 @@ const { run, pendingChoice } = await prepareTask({
   task: '请分析 CSV 数据',
   files: [path.join(root, 'data', '销售 数据.csv')],
   phase: 'inspection',
+  taskId: 'custom-selector-demo-task',
+  event: 'new_task',
   selector,
 });
 

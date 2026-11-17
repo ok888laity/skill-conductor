@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { normalizeAssistance } from './adaptive.mjs';
 import { ConfigError } from './errors.mjs';
 import { readJson, sha256, stableStringify } from './util.mjs';
 
@@ -203,6 +204,7 @@ export async function normalizeConfig(raw, { baseDir = process.cwd(), configPath
   if (!['ask', 'auto'].includes(policyMode)) throw new ConfigError('policy.mode must be ask or auto');
 
   const capabilities = stringList(raw.capabilities, 'capabilities');
+  const assistance = normalizeAssistance(raw.assistance ?? {});
 
   const executionRaw = raw.execution ?? {};
   if (!isObject(executionRaw)) throw new ConfigError('execution must be an object');
@@ -276,6 +278,7 @@ export async function normalizeConfig(raw, { baseDir = process.cwd(), configPath
     'selector',
     'policy',
     'capabilities',
+    'assistance',
     'execution',
     'materials',
     'mcp',
@@ -286,7 +289,7 @@ export async function normalizeConfig(raw, { baseDir = process.cwd(), configPath
   }
 
   const config = {
-    version: '0.1',
+    version: '0.2',
     configPath,
     baseDir,
     roots,
@@ -294,6 +297,7 @@ export async function normalizeConfig(raw, { baseDir = process.cwd(), configPath
     selector,
     policy: { mode: policyMode },
     capabilities,
+    assistance,
     execution,
     materials,
     mcp,
@@ -373,6 +377,7 @@ export function publicConfig(config) {
     },
     policy: config.policy,
     capabilities: config.capabilities,
+    assistance: config.assistance,
     execution: {
       enabled: config.execution.enabled,
       allowlist: config.execution.allowlist,
@@ -395,6 +400,12 @@ export function configFingerprint(config) {
       roots: config.roots.map((root) => [root.path, root.namespace, root.trusted]),
       capabilities: config.capabilities,
       policy: { mode: config.policy?.mode ?? 'ask' },
+      assistance: {
+        enabled: config.assistance?.enabled ?? true,
+        profile: config.assistance?.profile ?? 'balanced',
+        triggers: config.assistance?.triggers ?? null,
+        budget: config.assistance?.budget ?? null,
+      },
       execution: {
         enabled: config.execution?.enabled ?? false,
         allowlist: config.execution?.allowlist ?? [],

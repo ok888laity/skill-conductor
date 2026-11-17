@@ -1,0 +1,453 @@
+{
+  "schema": "skill-conductor/public-adaptive-test-results/v1",
+  "version": "0.2.0",
+  "testedOn": "2026-11-17",
+  "development": {
+    "model": "opencode-go/deepseek-v4.1-flash",
+    "finalReasoningVariant": "max",
+    "note": "Initial partial implementation used low. The user explicitly requested max; the low writer was stopped, the same session resumed with max, and exported message metadata verified model.variant=max. Subsequent completion and live selector checks used max."
+  },
+  "userDecision": {
+    "confirmed": "New tasks use cheap local assessment before costly skill retrieval (question1 A).",
+    "configurableDefaultsNotExplicitUserAnswers": [
+      "failure threshold2",
+      "one-run owner approval; no implicit task-wide authorization"
+    ]
+  },
+  "behavior": {
+    "totalSwitch": true,
+    "profiles": [
+      "manual",
+      "conservative",
+      "balanced",
+      "proactive",
+      "custom"
+    ],
+    "approvalIndependent": true,
+    "balancedGate": "Local deterministic multilingual heuristics and explicit host signals. Not a model call or semantic classifier. Ambiguous tasks cautiously check once; hosts can report needsSkill.",
+    "requiresHostEvents": "Pass a stable task identity and real phase/material/error events. No-context callers preserve documented one-shot behavior.",
+    "cacheBoundary": "Reuse recommendations/activated instructions only; never replay scripts or count cached output as new execution.",
+    "ownerChoice": "Existing per-run ask boundary remains. Changed work that requires execution obtains a fresh run/choice; cached context can continue host work."
+  },
+  "installedConsumer": {
+    "authorSourceImported": false,
+    "sdk": {
+      "passed": 17,
+      "failed": 0,
+      "checks": [
+        {
+          "name": "OFF short-circuits invalid materials, catalog and callbacks",
+          "pass": true
+        },
+        {
+          "name": "OFF blocks a previously pending owner choice and resume",
+          "pass": true
+        },
+        {
+          "name": "manual profile ignores passive events and accepts explicit request",
+          "pass": true
+        },
+        {
+          "name": "balanced skips Chinese one-sentence edits and direct explanations cheaply",
+          "pass": true
+        },
+        {
+          "name": "specialized Chinese task makes real ASK pending and ten continuations reuse it",
+          "pass": true
+        },
+        {
+          "name": "owner skip suppresses current phase and new phase can route",
+          "pass": true
+        },
+        {
+          "name": "unchanged no_match is cached rather than rerunning selection",
+          "pass": true
+        },
+        {
+          "name": "phase, family and requirement changes each trigger a check",
+          "pass": true
+        },
+        {
+          "name": "failure threshold2 and same-error deduplication",
+          "pass": true
+        },
+        {
+          "name": "automatic budget limits checks and manual request can retry",
+          "pass": true
+        },
+        {
+          "name": "new task identities do not inherit skips or negative results",
+          "pass": true
+        },
+        {
+          "name": "new session identity does not inherit same task ID skip",
+          "pass": true
+        },
+        {
+          "name": "reused context does not replay executor or claim new execution for changed data",
+          "pass": true
+        },
+        {
+          "name": "skill content changes invalidate activated context reuse",
+          "pass": true
+        },
+        {
+          "name": "changed policy never turns old pending into auto approval",
+          "pass": true
+        },
+        {
+          "name": "legacy no-context one-shot remains ASK and profile defaults are user selectable",
+          "pass": true
+        },
+        {
+          "name": "frequency profiles have distinct actual trigger behavior",
+          "pass": true
+        }
+      ]
+    },
+    "cliMcp": {
+      "passed": 10,
+      "failed": 0,
+      "checks": [
+        {
+          "name": "owner can show and switch every profile without changing ask policy",
+          "pass": true
+        },
+        {
+          "name": "invalid settings leave original configuration bytes intact",
+          "pass": true
+        },
+        {
+          "name": "profile choice after fresh init applies its behavioral defaults",
+          "pass": true
+        },
+        {
+          "name": "balanced detailed rules and budget can be changed by the owner",
+          "pass": true
+        },
+        {
+          "name": "installed CLI total switch bypasses missing material input",
+          "pass": true
+        },
+        {
+          "name": "CLI task events persist pending identity across real processes",
+          "pass": true
+        },
+        {
+          "name": "real MCP initializes and exposes no settings or approval mutation tools",
+          "pass": true
+        },
+        {
+          "name": "MCP event request produces ASK and repeated event keeps its pending identity",
+          "pass": true
+        },
+        {
+          "name": "owner OFF change is honored by the already-running MCP process",
+          "pass": true
+        },
+        {
+          "name": "MCP rejects untrusted settings and auto-mode fields",
+          "pass": true
+        }
+      ]
+    },
+    "legacy": {
+      "passed": 9,
+      "failed": 0,
+      "checks": [
+        {
+          "name": "installed CLI help",
+          "pass": true
+        },
+        {
+          "name": "demo without init writes under caller and numeric outputs are independently verified",
+          "pass": true
+        },
+        {
+          "name": "installed init --demo preserves ASK, limits trust, and refuses to overwrite",
+          "pass": true
+        },
+        {
+          "name": "config discovery from nested Chinese path; init demo then real execution",
+          "pass": true
+        },
+        {
+          "name": "custom skills init trusts no scripts; explicit config overrides discovered config",
+          "pass": true
+        },
+        {
+          "name": "installed SDK ASK holds; owner chooses; two scripts execute; numeric truth checked",
+          "pass": true
+        },
+        {
+          "name": "installed SDK skip; explicit AUTO; genuine no_match",
+          "pass": true
+        },
+        {
+          "name": "owner can select a different near-neighbor skill with the same display name",
+          "pass": true
+        },
+        {
+          "name": "installed MCP real stdio init/list/call/ASK/no_match without --config after init",
+          "pass": true
+        }
+      ]
+    }
+  },
+  "efficiency": {
+    "label": "Synthetic host event sequence, deterministic callback selector. No live semantic-accuracy or latency claim.",
+    "events": 20,
+    "naive": {
+      "version": "0.1.1",
+      "selectorCalls": 20,
+      "distinctPendingChoices": 20
+    },
+    "adaptive": {
+      "selectorCalls": 3,
+      "distinctPendingChoices": 3,
+      "actualExecutions": 0
+    },
+    "rows": [
+      {
+        "index": 0,
+        "event": "start",
+        "hostEvent": "new_task",
+        "status": "awaiting_choice",
+        "pending": true,
+        "reason": "new_task_specialized",
+        "executed": false
+      },
+      {
+        "index": 1,
+        "event": "step",
+        "hostEvent": "routine_continuation",
+        "status": "awaiting_choice",
+        "pending": true,
+        "reason": "pending_unchanged",
+        "executed": false
+      },
+      {
+        "index": 2,
+        "event": "step",
+        "hostEvent": "routine_continuation",
+        "status": "awaiting_choice",
+        "pending": true,
+        "reason": "pending_unchanged",
+        "executed": false
+      },
+      {
+        "index": 3,
+        "event": "step",
+        "hostEvent": "routine_continuation",
+        "status": "awaiting_choice",
+        "pending": true,
+        "reason": "pending_unchanged",
+        "executed": false
+      },
+      {
+        "index": 4,
+        "event": "step",
+        "hostEvent": "routine_continuation",
+        "status": "awaiting_choice",
+        "pending": true,
+        "reason": "pending_unchanged",
+        "executed": false
+      },
+      {
+        "index": 5,
+        "event": "step",
+        "hostEvent": "routine_continuation",
+        "status": "awaiting_choice",
+        "pending": true,
+        "reason": "pending_unchanged",
+        "executed": false
+      },
+      {
+        "index": 6,
+        "event": "step",
+        "hostEvent": "routine_continuation",
+        "status": "awaiting_choice",
+        "pending": true,
+        "reason": "pending_unchanged",
+        "executed": false
+      },
+      {
+        "index": 7,
+        "event": "step",
+        "hostEvent": "routine_continuation",
+        "status": "awaiting_choice",
+        "pending": true,
+        "reason": "pending_unchanged",
+        "executed": false
+      },
+      {
+        "index": 8,
+        "event": "step",
+        "hostEvent": "routine_continuation",
+        "status": "awaiting_choice",
+        "pending": true,
+        "reason": "pending_unchanged",
+        "executed": false
+      },
+      {
+        "index": 9,
+        "event": "materials_change",
+        "hostEvent": "routine_continuation",
+        "status": "awaiting_choice",
+        "pending": true,
+        "reason": "pending_unchanged",
+        "executed": false
+      },
+      {
+        "index": 10,
+        "event": "phase_change",
+        "hostEvent": "phase_change",
+        "status": "awaiting_choice",
+        "pending": true,
+        "reason": "phase_changed",
+        "executed": false
+      },
+      {
+        "index": 11,
+        "event": "step",
+        "hostEvent": "routine_continuation",
+        "status": "awaiting_choice",
+        "pending": true,
+        "reason": "pending_unchanged",
+        "executed": false
+      },
+      {
+        "index": 12,
+        "event": "step",
+        "hostEvent": "routine_continuation",
+        "status": "awaiting_choice",
+        "pending": true,
+        "reason": "pending_unchanged",
+        "executed": false
+      },
+      {
+        "index": 13,
+        "event": "step",
+        "hostEvent": "routine_continuation",
+        "status": "awaiting_choice",
+        "pending": true,
+        "reason": "pending_unchanged",
+        "executed": false
+      },
+      {
+        "index": 14,
+        "event": "step",
+        "hostEvent": "routine_continuation",
+        "status": "awaiting_choice",
+        "pending": true,
+        "reason": "pending_unchanged",
+        "executed": false
+      },
+      {
+        "index": 15,
+        "event": "step",
+        "hostEvent": "routine_continuation",
+        "status": "awaiting_choice",
+        "pending": true,
+        "reason": "pending_unchanged",
+        "executed": false
+      },
+      {
+        "index": 16,
+        "event": "failure",
+        "hostEvent": "repeated_failure",
+        "status": "suppressed",
+        "pending": false,
+        "reason": "repeated_failure_threshold",
+        "executed": false
+      },
+      {
+        "index": 17,
+        "event": "failure",
+        "hostEvent": "repeated_failure",
+        "status": "awaiting_choice",
+        "pending": true,
+        "reason": "repeated_failure_threshold_reached",
+        "executed": false
+      },
+      {
+        "index": 18,
+        "event": "failure",
+        "hostEvent": "repeated_failure",
+        "status": "suppressed",
+        "pending": false,
+        "reason": "repeated_failure_deduped",
+        "executed": false
+      },
+      {
+        "index": 19,
+        "event": "delivery",
+        "hostEvent": "delivery",
+        "status": "suppressed",
+        "pending": false,
+        "reason": "delivery_recheck_disabled",
+        "executed": false
+      }
+    ],
+    "limit": "Fixed synthetic callback sequence: selection-call counts and unique pending records, not production cost savings, live semantic accuracy, or latency guarantees."
+  },
+  "live": {
+    "model": "opencode-go/deepseek-v4.1-flash#max",
+    "realSelectorSessions": 2,
+    "routineEventsWithoutNewSelection": 10,
+    "totalExecutions": 0,
+    "checks": [
+      {
+        "kind": "initial",
+        "status": "awaiting_choice",
+        "selected": [
+          "demo:csv-inspector",
+          "demo:markdown-report"
+        ]
+      },
+      {
+        "kind": "ten-routine-events",
+        "additionalSelections": 0
+      },
+      {
+        "kind": "phase-change",
+        "status": "awaiting_choice",
+        "selected": [
+          "demo:csv-inspector",
+          "demo:markdown-report"
+        ]
+      },
+      {
+        "kind": "off",
+        "status": "disabled",
+        "executed": false
+      }
+    ],
+    "scope": "Actual max semantic adapter integration on first-party synthetic demo data, ASK routing only. Not a held-out benchmark."
+  },
+  "preservedEarlyFailures": [
+    {
+      "case": "balanced skips Chinese one-sentence edits and direct explanations cheaply",
+      "firstErrorLine": "AssertionError [ERR_ASSERTION]: 把这句话改通顺：我昨天去了学校。"
+    },
+    {
+      "case": "new session identity does not inherit same task ID skip",
+      "firstErrorLine": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:"
+    },
+    {
+      "case": "profile choice after fresh init applies its behavioral defaults",
+      "firstErrorLine": "AssertionError [ERR_ASSERTION]: init must not pin balanced delivery defaults as if the owner overrode them"
+    },
+    {
+      "case": "MCP rejects untrusted settings and auto-mode fields",
+      "firstErrorLine": "AssertionError [ERR_ASSERTION]: {\"jsonrpc\":\"2.0\",\"id\":7,\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"{\\n  \\\"schema\\\": \\\"skill-conductor/run/v0.2\\\",\\n  \\\"runId\\\": \\\"run-20261117043817-9f3ae129\\\",\\n  \\\"createdAt\\\": \\\"2026-11-17T04:38:17.567Z\\\",\\n  \\\"updatedAt\\\": \\\"2026-11-17T04:38:17.567Z\\\",\\n  \\\"mode\\"
+    }
+  ],
+  "upstream": "Existing multi-project attribution retained. This update adopts explicit events, progressive loading, hash invalidation and separate recommendation/owner authority; no external performance claims were copied.",
+  "limits": [
+    "No new40-skill routing accuracy claim; prior64-case outcomes remain unchanged and available in onboarding-test-report.md.",
+    "No external service posting/deployment or third-party skill installation in this feature test.",
+    "Disabling affects future assistance; it does not retract context already delivered or roll back completed actions.",
+    "npm registry publication is still unavailable; install using the public GitHub tarball."
+  ]
+}

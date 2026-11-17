@@ -2,11 +2,13 @@
 
 一个**宿主无关**的 SKILL.md 发现、推荐、人工选择、激活与可选受信任执行组件。核心是 Node.js ESM SDK 与 CLI；MCP stdio 是适配层，OpenCode 只是一个可选的语义选择器适配器，不是运行前提。
 
-当前 v0.1.1 默认采用 **ask（人工选择）**，显式开启 **auto** 后自主选择和调用，并保留推荐理由、执行状态和独立校验记录。
+当前 v0.2.0 默认采用 **ask（人工选择）**，显式开启 **auto** 后自主选择和调用，并保留推荐理由、执行状态和独立校验记录。v0.2 增加独立的按需触发设置：宿主提供任务身份和工作事件后，先做轻量本地判断，再决定是否扫描目录和调用选择器；支持关闭、触发档位、按任务去重、预算、失败阈值和上下文复用。
 
-English quickstart: [`README.en.md`](README.en.md). 开发期真实 OpenCode 集成结果（非 benchmark）见 [`docs/live-integration.md`](docs/live-integration.md)。
+English quickstart: [`README.en.md`](README.en.md). 自适应触发的完整接口、默认值和限制见 [`docs/adaptive-triggering.md`](docs/adaptive-triggering.md)（English: [`docs/adaptive-triggering.en.md`](docs/adaptive-triggering.en.md)）。开发期真实 OpenCode 集成结果（非 benchmark）见 [`docs/live-integration.md`](docs/live-integration.md)。
 
 普通用户安装与 **4 个领域、40 个真实 skill、64 个任务**的推荐测试、4 例真实执行及已知失败，见 [`docs/onboarding-test-report.md`](docs/onboarding-test-report.md)。
+
+0.2.0 的独立安装包检查、固定 20 步序列中选择器调用从 20 次降至 3 次的对照，以及真实 max 选择器检查，见 [`docs/adaptive-test-report.md`](docs/adaptive-test-report.md)。该对照是集成验证，不代表生产准确率或耗时保证。
 
 可选的真实技能测试复现步骤见 [`docs/reproduce-live-tests.md`](docs/reproduce-live-tests.md)，本次临时技能清理与原环境哈希复核摘要见 [`docs/environment-restoration.json`](docs/environment-restoration.json)。
 
@@ -89,9 +91,12 @@ skill-conductor.cmd init [--root PATH | --demo]
 skill-conductor.cmd list [--config PATH]
 skill-conductor.cmd route TASK [--config PATH] [--material FILE ...] [--phase X]
 skill-conductor.cmd run TASK [--config PATH] [--material FILE ...] [--phase X]
+    [--task-id ID] [--session-id ID] [--event EVENT] [--activity JSON] [--needs-skill] [--manual]
 skill-conductor.cmd choose RUN_ID [--config PATH] (--skills ID,ID | --skip) [--activate-only]
 skill-conductor.cmd show RUN_ID [--config PATH]
 skill-conductor.cmd runs [--config PATH]
+skill-conductor.cmd settings show [--config PATH]
+skill-conductor.cmd settings set KEY VALUE [--config PATH]
 skill-conductor.cmd interactive [--config PATH]
 skill-conductor.cmd mcp [--config PATH]
 skill-conductor.cmd demo [--config PATH]
@@ -101,6 +106,8 @@ skill-conductor.cmd demo [--config PATH]
 - `route`：只路由/激活上下文；在 ask 下返回 pending；不会执行脚本。
 - `run`：ask 下同样先返回 pending；所有者 `choose` 后才按持久化意图执行。
 - `choose`：新进程读取持久化 run，校验 pending 状态、plan token、技能/脚本/配置 hash；`--skip` 记录跳过；`--activate-only` 只激活。
+- `settings show` / `settings set KEY VALUE`：所有者 CLI 查看/修改 `assistance.enabled`、profile、已知 triggers 和预算；只做完整校验后原子写入，保留其他配置与 `policy.mode`。MCP 没有设置或审批工具。
+- `--task-id ID`、`--event EVENT`、`--activity JSON`、`--needs-skill`、`--manual`：启用事件感知的便宜触发门。不传 `--task-id` 时保留旧的一次性行为；总开关与 manual profile 仍生效。
 - `interactive`：简体中文 TTY 菜单，显示推荐、理由、候选编号与阻塞项；可输入 `a` 接受推荐、`1` 或 `1,3` 选编号、`s` 跳过、`q` 退出。新建任务时会明确询问 `ask`（默认，先确认）或 `auto`（本次自主），也可用 `--mode auto` 预先指定；恢复已有 pending 时保留其原模式和意图。**空输入会重新询问，绝不等于批准。** 非 TTY 会报错，脚本请用 `route` + `choose`。
 - 机器输出为 stdout 上的 JSON；提示和错误走 stderr。交互菜单的提示也走 stderr，因此最后结果仍是可解析 JSON。
 
@@ -116,12 +123,15 @@ import { loadConfig, prepareTask, chooseRun, verifyRun } from './src/index.mjs';
 const config = await loadConfig('examples/config.demo.json');
 
 // 1) 路由并持久化 pending；ask 下不会加载正文或执行
-const { run, pendingChoice } = await prepareTask({
+const { run, pendingChoice, trigger } = await prepareTask({
   config,
   task: '分析这份 CSV 并生成报告',
+  taskId: 'task-2026-001', // 显式任务身份；省略则保留 v0.1 一次性行为
+  event: 'new_task',
   files: ['data/销售 数据.csv'],
   phase: 'reporting',
 });
+// trigger 是结构化解释：action/reasonCode/explanation/budget/counters
 
 // 2) 把 pendingChoice.candidates / recommendation 展示给用户
 // 3) 用户真正选择后，由受信任宿主代码记录决定并恢复
@@ -158,6 +168,23 @@ if (executed.states.executed) {
 - 宿主执行器：`prepareTask` / `chooseRun` / `resumeRun` 可传 `executor`。没有受信任脚本时，激活正文和资源交给宿主；`handoff` 不等于执行成功。
 - 每一步重新路由：见 `examples/sdk-before-each-step.mjs`。新的 `phase` / `observations` 会生成新的 run；会话自己的选择由调用方保存，不会因为重路由被静默改写。
 - 自定义 selector + 宿主执行器：见 `examples/custom-selector-host-executor.mjs`。
+
+## 自适应触发
+
+`assistance.enabled` 是独立于 ask/auto 的总开关。关闭时在读取材料、扫描目录和调用选择器之前短路，返回 `status: "disabled"`；不会伪造 `no_match`，且 pending 的 `choose`/`resume`/MCP 激活都会被拒绝。历史仍可读。
+
+profile 为 `manual` / `conservative` / `balanced` / `proactive` / `custom`，默认 `balanced`：
+
+- 新任务：明显寒暄、一句话直接修改/解释会跳过；明确文件处理、专门输出或宿主 `needsSkill=true` 会触发发现；模糊文本采用谨慎回退（中文和英文一致），不会因为英文词法而隐藏中文任务。
+- 同任务同阶段 routine continuation：复用已激活决策和上下文，不再次调用选择器；返回 `status:"reused"`、`sourceRunId`、`context`，并明确 `executedForThisEvent:false`。同格式新输入只复用技能选择，不把旧计算结果当成新结果。
+- 实质 `phase` / 材料族 / `requirementsKey` 变化会重新判断；普通措辞编辑、observation 或文件 mtime 不会被猜成阶段变化。
+- 失败指纹默认第 2 次才触发，触发一次后在实质变化前不重复；交付复查默认关闭；每任务自动检查预算默认 12，耗尽时显式返回 `budget_exhausted`，手动请求可越过预算但不能越过总开关/信任/审批。
+- 用户 `--skip` 默认只抑制当前 phase，直到材料/需求/阶段变化或手动请求。
+- 不在启动时持久化 pending 的重复提示：同一指纹直接返回同一 `runId`。
+
+状态按 **workspace + `sessionId` + `taskId`** 隔离，同一 taskId 的新 session 不能继承审批/pending/no-match/skip/上下文/预算，也不会把“同一任务”当成隐式批准。`init` 只写 `enabled`/`profile`，不会把 balanced 的 triggers/budget 固化成覆盖，因此切换 profile 会应用所选 preset。缓存复用前校验配置/信任、目录签名和已选 SKILL.md/sidecar/脚本 hash；真正激活仍走原有 stale hash/trust 检查。MCP 每次 `tools/call` 重新读取配置，因此运行中的 MCP 进程会在下一次请求看到所有者关闭总开关；不支持的顶层设置参数先返回显式 isError。
+
+公开可复现计数器示例：`node examples/adaptive-event-sequence.mjs`。它使用确定性 synthetic selector callback，对比 naive 每步路由与 adaptive 的事件序列；**不是实时语义准确率**。完整说明见 [`docs/adaptive-triggering.md`](docs/adaptive-triggering.md)。
 
 ## 选择器模式
 
@@ -220,12 +247,12 @@ node bin\skill-conductor.mjs mcp --config examples\config.demo.json
 工具：
 
 - `list_skills`
-- `prepare_skills`（不接收 mode；mode 只来自受信任配置）
+- `prepare_skills`（不接收 mode 或设置；mode/信任只来自受信任配置；可带 `taskId`、`sessionId`、`event` 与 `activity` 任务事件数据）
 - `get_run`
 - `activate_run`（已批准才加载；否则原样返回 awaiting_choice）
 - `read_resource`（仅激活 run 中声明的资源）
 
-没有 `approve` / `decide` / `set_mode` 工具。审批来自所有者 CLI 或受信任宿主 UI/回调，下一次 MCP 调用读取状态。`prepare_skills` 的自主执行还要求 `mcp.allowExecution` 与 `execution.enabled` 同时为 true；否则即使配置是 auto，也只路由/激活。通用聊天集成应把 pending 候选和理由展示给用户，例如读取 result 中的 `candidates` 与 `recommendation` 并生成问题。
+没有 `approve` / `decide` / `set_mode` / `update_settings` 工具。审批与设置只来自所有者 CLI 或受信任宿主 UI/回调。每次 `tools/call` 会重新读取受信任配置，因此 MCP 运行期间由 CLI 关闭 `assistance.enabled`，下一次请求即生效；配置损坏会显式失败而不是回退旧配置。`prepare_skills` 的自主执行还要求 `mcp.allowExecution` 与 `execution.enabled` 同时为 true；否则即使配置是 auto，也只路由/激活。通用聊天集成应把 pending 候选和理由展示给用户，例如读取 result 中的 `candidates` 与 `recommendation` 并生成问题。
 
 这是有文档边界的最小适配器，不是完整 MCP SDK 或安全边界声明。
 
@@ -234,11 +261,12 @@ node bin\skill-conductor.mjs mcp --config examples\config.demo.json
 实际可运行命令（Node v24.22.1 已验证）：
 
 ```powershell
-node --test tests\foundation.test.mjs tests\runtime.test.mjs tests\mcp-cli.test.mjs tests\process-cleanup.test.mjs tests\http-selector.test.mjs
+node --test tests\foundation.test.mjs tests\runtime.test.mjs tests\adaptive.test.mjs tests\mcp-cli.test.mjs tests\process-cleanup.test.mjs tests\http-selector.test.mjs tests\onboarding-cli.test.mjs
+node examples\adaptive-event-sequence.mjs
 node evals\run-eval.mjs
 ```
 
-`package.json` 的 `test` 脚本使用同一组显式文件；如果环境里有 npm，也可以运行 `npm test`。本机 Windows / Node 24.22.1 已验证 30 项项目测试全部通过。GitHub Actions 配置了 Windows/Linux 与 Node 20/22/24；云端矩阵的实际结果以仓库运行记录为准。
+`package.json` 的 `test` 脚本使用同一组显式文件；如果环境里有 npm，也可以运行 `npm test`。本机 Windows / Node 24.22.3 已验证 50 项项目测试全部通过（数量以本轮实际输出为准）。`examples/adaptive-event-sequence.mjs` 是 synthetic callback 计数器对比，不是准确率 benchmark。GitHub Actions 配置了 Windows/Linux 与 Node 20/22/24；云端矩阵的实际结果以仓库运行记录为准。
 
 `evals\run-eval.mjs` 是 **synthetic-lexical-fixtures** 的离线开发检查，覆盖中英文、无匹配与 avoid trigger，只验证词法排序，不代表语义准确率或实时模型质量。
 

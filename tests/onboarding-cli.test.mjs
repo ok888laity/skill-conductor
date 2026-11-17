@@ -56,6 +56,8 @@ test('init --demo is safe in a spaced Chinese path, refuses overwrite, and demo 
   const configBody = await fs.readFile(configPath, 'utf8');
   const config = JSON.parse(configBody);
   assert.equal(config.policy.mode, 'ask');
+  assert.equal(config.assistance.enabled, true);
+  assert.equal(config.assistance.profile, 'balanced');
   assert.equal(config.execution.enabled, true);
   assert.deepEqual(config.execution.trustedSkillIds, ['demo:csv-inspector', 'demo:markdown-report']);
   assert.ok(config.execution.allowlist.every((id) => config.execution.trustedSkillIds.includes(id)));

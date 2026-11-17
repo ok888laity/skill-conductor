@@ -10,9 +10,24 @@ Default behavior is **ask**: routing produces candidates and a recommendation,
 persists a pending choice, and does not activate a skill body, run a script, or
 call a host executor. Autonomous mode is an explicit opt-in.
 
-Version 0.1.1 adds local initialization, working-directory config discovery,
-and caller-owned demo output. See the [onboarding and four-domain test report](docs/onboarding-test-report.md)
-and [machine-readable results](docs/onboarding-test-results.json): 40 real skills,
+Version 0.2.0 adds an **adaptive trigger gate** that is independent of the
+ask/auto approval policy. With task identity and host events, a cheap local
+assessment controls when discovery and selection run; ambiguous tasks use the
+documented cautious fallback.
+Per-task sessions add pending deduplication, no-match/skip suppression, a
+configurable expensive-check budget, failure thresholds, and cache/context reuse
+that never re-executes scripts. Full behavior, defaults and limitations:
+[`docs/adaptive-triggering.en.md`](docs/adaptive-triggering.en.md).
+
+The [independent adaptive test report](docs/adaptive-test-report.md) and
+[machine-readable results](docs/adaptive-test-results.json) cover installed
+SDK/CLI/MCP checks, a fixed 20-event callback comparison (20 selections to 3),
+and real max-model selector integration. These are integration checks, not
+production accuracy, latency, or cost guarantees.
+
+The prior 0.1.1 onboarding evidence remains available in the
+[onboarding and four-domain test report](docs/onboarding-test-report.md) and
+[machine-readable results](docs/onboarding-test-results.json): 40 real skills,
 64 frozen development tasks, four audited native executions, and preserved failures.
 
 ## Requirements
@@ -82,6 +97,61 @@ decide. Model output is a recommendation, never approval. If the selector
 abstains, the terminal status is `no_match` with candidates/abstainReason
 preserved; it is not an empty approval prompt.
 
+## Adaptive triggering in one minute
+
+`assistance.enabled` is the owner total switch. When false, `prepareTask` returns
+`status: "disabled"` **before** reading materials, scanning catalogs, or calling
+selectors/executors; `chooseRun`, `resumeRun` and MCP activation cannot bypass it.
+History stays readable. This is independent of `policy.mode` ask/auto.
+
+Profiles are `manual`, `conservative`, `balanced` (default), `proactive` and
+`custom`. Without `taskId`, documented v0.1 one-shot behavior is preserved.
+With an explicit `taskId` and event:
+
+```js
+const { run, pendingChoice, trigger } = await prepareTask({
+  config,
+  task: 'continue organising this material',
+  taskId: 'task-2026-001',
+  sessionId: 'host-session-7',
+  event: 'routine_continuation', // or new_task, phase_change, ... manual_request
+  phase: 'summarize',
+  activity: { needsSkill: false, requirementsKey: 'summary-v1' },
+  selector,
+});
+```
+
+Task state is scoped by workspace + `sessionId` + `taskId`; the same taskId in a
+new session starts a fresh check and never inherits skip, pending, no_match,
+context or budget. `init` stores only `enabled`/`profile`, so switching profile
+applies that preset instead of being blocked by pinned balanced defaults.
+
+Same-phase routine steps with an activated decision return `status:"reused"`,
+`sourceRunId` and existing `context`, with `executedForThisEvent:false`; no
+selector or script runs. Same-format new input reuses the skill choice but never
+treats old computed output as a new result. Material/requirements/phase changes,
+changed skill/script hashes, config/trust changes or catalog root changes
+invalidate the cache. An unchanged pending request returns the same run without
+a duplicate prompt. A skip suppresses the current phase; a real `no_match` is
+suppressed for unchanged continuations.
+
+Owner settings CLI only:
+
+```sh
+node bin/skill-conductor.mjs settings show --config .skill-conductor/config.json
+node bin/skill-conductor.mjs settings set assistance.enabled false --config .skill-conductor/config.json
+node bin/skill-conductor.mjs settings set assistance.profile conservative --config .skill-conductor/config.json
+```
+
+MCP exposes task event data but no settings, approval or switch-to-auto tool. A
+running MCP process reloads trusted config on every `tools/call`.
+
+Reproducible counters (synthetic callback, not live accuracy):
+
+```sh
+node examples/adaptive-event-sequence.mjs
+```
+
 ## SDK
 
 ```js
@@ -91,6 +161,8 @@ const config = await loadConfig('examples/config.demo.json');
 const prepared = await prepareTask({
   config,
   task: 'inspect this CSV and write a report',
+  taskId: 'task-2026-001',
+  event: 'new_task',
   files: ['data/销售 数据.csv'],
   mode: 'ask',
 });
@@ -118,6 +190,10 @@ Custom selector and host executor callbacks are documented in
   "roots": [{ "path": "../skills", "namespace": "demo", "trusted": true }],
   "selector": { "mode": "lexical" },
   "policy": { "mode": "ask" },
+  "assistance": {
+    "enabled": true,
+    "profile": "balanced"
+  },
   "capabilities": ["filesystem.read", "filesystem.write"],
   "execution": {
     "enabled": false,
@@ -143,6 +219,7 @@ adapter), or an SDK callback. Paths are resolved relative to the config file.
 ## Docs
 
 - Chinese README: [`README.md`](README.md)
+- Adaptive triggering (English): [`docs/adaptive-triggering.en.md`](docs/adaptive-triggering.en.md)
 - Host integration: [`docs/host-integration.md`](docs/host-integration.md)
 - Live development-testing report: [`docs/live-integration.md`](docs/live-integration.md)
 - Attribution: [`ATTRIBUTION.md`](ATTRIBUTION.md)

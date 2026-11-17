@@ -52,6 +52,20 @@ export {
 export { runTrustedSkill, inventoryArtifacts, executionTrust } from './runner.mjs';
 
 export {
+  ASSISTANCE_PROFILES,
+  TRIGGER_EVENTS,
+  normalizeAssistance,
+  assistanceExplanation,
+  classifyTask,
+  classifyFileFamilies,
+  evaluateAdaptiveTrigger,
+  loadTaskSession,
+  saveTaskSession,
+  catalogSignature,
+  triggerView,
+} from './adaptive.mjs';
+
+export {
   prepareTask,
   pendingView,
   chooseRun,

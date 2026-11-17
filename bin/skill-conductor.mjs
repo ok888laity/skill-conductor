@@ -6,6 +6,7 @@ import readline from 'node:readline';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { discoverConfigPath, loadConfig, normalizeConfig } from '../src/config.mjs';
+import { assistanceExplanation } from '../src/adaptive.mjs';
 import { toErrorObject } from '../src/errors.mjs';
 import { RunStore } from '../src/store.mjs';
 import {
@@ -19,7 +20,7 @@ import { startMcpServer } from '../src/mcp.mjs';
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
-const HELP = `Skill Conductor v0.1 — host-neutral skill routing
+const HELP = `Skill Conductor v0.2 — adaptive, host-neutral skill routing
 
 Usage:
   skill-conductor help
@@ -27,9 +28,12 @@ Usage:
   skill-conductor list [--config PATH]
   skill-conductor route TASK [--config PATH] [--material FILE ...] [--phase X] [--mode ask|auto]
   skill-conductor run TASK [--config PATH] [--material FILE ...] [--phase X] [--mode ask|auto]
+     [--task-id ID] [--session-id ID] [--event EVENT] [--activity JSON] [--needs-skill] [--manual]
   skill-conductor choose RUN_ID [--config PATH] (--skills ID,ID | --skip) [--activate-only]
   skill-conductor show RUN_ID [--config PATH]
   skill-conductor runs [--config PATH]
+  skill-conductor settings [show] [--config PATH]
+  skill-conductor settings set KEY VALUE [--config PATH]
   skill-conductor interactive [--config PATH]
   skill-conductor mcp [--config PATH]
   skill-conductor demo [--config PATH]
@@ -52,6 +56,15 @@ recommendation and reasons, and accepts the recommendation, numbered one/many,
 or skip. Empty input is never approval. Noninteractive scripts should use
 route + choose.
 
+Adaptive triggering: assistance.enabled is the owner total switch. Profiles are
+manual, conservative, balanced, proactive or custom. Without --task-id/--event,
+legacy one-shot behavior is kept (except the total switch and manual profile).
+With --task-id the cheap gate may trigger, suppress, reuse or return the same
+pending choice. Settings are owner-CLI only: use
+"skill-conductor settings set assistance.profile conservative" and
+"skill-conductor settings set assistance.enabled false". This is independent of
+policy.mode ask/auto.
+
 Windows launcher: skill-conductor.cmd (set SKILL_CONDUCTOR_NODE if node is not
 on PATH). Output is JSON on stdout. Diagnostics and errors go to stderr.`;
 
@@ -67,6 +80,12 @@ function parse(argv) {
       observe: { type: 'string', multiple: true },
       phase: { type: 'string' },
       mode: { type: 'string' },
+      'task-id': { type: 'string' },
+      'session-id': { type: 'string' },
+      event: { type: 'string' },
+      activity: { type: 'string' },
+      'needs-skill': { type: 'boolean', default: false },
+      manual: { type: 'boolean', default: false },
       skills: { type: 'string' },
       skip: { type: 'boolean', default: false },
       'activate-only': { type: 'boolean', default: false },
@@ -155,6 +174,10 @@ async function init(values) {
       selector: baseSelector(),
       policy: { mode: 'ask' },
       capabilities: ['filesystem.read', 'filesystem.write'],
+      assistance: {
+        enabled: true,
+        profile: 'balanced',
+      },
       execution: {
         enabled: true,
         allowlist: DEMO_IDS,
@@ -199,6 +222,10 @@ async function init(values) {
       selector: baseSelector(),
       policy: { mode: 'ask' },
       capabilities: ['filesystem.read', 'filesystem.write'],
+      assistance: {
+        enabled: true,
+        profile: 'balanced',
+      },
       execution: {
         enabled: false,
         allowlist: [],
@@ -348,6 +375,126 @@ async function demo(values) {
     artifacts: run.execution?.steps?.flatMap((step) => step.artifacts ?? []) ?? [],
     verification: run.verification,
     artifactDir: run.execution?.artifactDir,
+  });
+}
+
+const SETTING_KEYS = new Map([
+  ['assistance.enabled', { type: 'boolean' }],
+  ['assistance.profile', { type: 'profile' }],
+  ['assistance.triggers.newTask', { type: 'boolean' }],
+  ['assistance.triggers.ambiguousNewTask', { type: 'boolean' }],
+  ['assistance.triggers.phaseChange', { type: 'boolean' }],
+  ['assistance.triggers.materialFamilyChange', { type: 'boolean' }],
+  ['assistance.triggers.requirementsChange', { type: 'boolean' }],
+  ['assistance.triggers.repeatedFailure', { type: 'boolean' }],
+  ['assistance.triggers.delivery', { type: 'boolean' }],
+  ['assistance.triggers.smallTalkSkip', { type: 'boolean' }],
+  ['assistance.triggers.simpleTaskSkip', { type: 'boolean' }],
+  ['assistance.triggers.failureThreshold', { type: 'integer', min: 1, max: 20 }],
+  ['assistance.triggers.deliveryRecheck', { type: 'boolean' }],
+  ['assistance.budget.maxAutomaticChecksPerTask', { type: 'integer', min: 0, max: 1000 }],
+  ['assistance.state.maxTasks', { type: 'integer', min: 1, max: 5000 }],
+  ['policy.mode', { type: 'mode' }],
+]);
+
+function parseSettingValue(key, rawValue) {
+  const spec = SETTING_KEYS.get(key);
+  if (!spec) throw new Error(`unknown setting: ${key}. Known keys: ${[...SETTING_KEYS.keys()].join(', ')}`);
+  const value = String(rawValue ?? '').trim();
+  if (spec.type === 'boolean') {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    throw new Error(`${key} must be true or false`);
+  }
+  if (spec.type === 'integer') {
+    const number = Number(value);
+    if (!Number.isInteger(number) || number < spec.min || number > spec.max) {
+      throw new Error(`${key} must be an integer between ${spec.min} and ${spec.max}`);
+    }
+    return number;
+  }
+  if (spec.type === 'profile') {
+    if (!['manual', 'conservative', 'balanced', 'proactive', 'custom'].includes(value)) {
+      throw new Error(`${key} must be manual, conservative, balanced, proactive or custom`);
+    }
+    return value;
+  }
+  if (spec.type === 'mode') {
+    if (value !== 'ask' && value !== 'auto') throw new Error(`${key} must be ask or auto`);
+    return value;
+  }
+  throw new Error(`unsupported setting type for ${key}`);
+}
+
+function setDeep(target, dottedKey, value) {
+  const parts = dottedKey.split('.');
+  let current = target;
+  for (const part of parts.slice(0, -1)) {
+    if (!current[part] || typeof current[part] !== 'object' || Array.isArray(current[part])) current[part] = {};
+    current = current[part];
+  }
+  current[parts[parts.length - 1]] = value;
+  return target;
+}
+
+async function writeJsonAtomic(file, value) {
+  const temp = `${file}.tmp-${process.pid}-${globalThis.crypto.randomUUID().slice(0, 8)}`;
+  await fs.writeFile(temp, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
+  try {
+    await fs.rename(temp, file);
+  } catch (error) {
+    if (error.code === 'EEXIST' || error.code === 'EPERM') {
+      await fs.unlink(file).catch(() => {});
+      await fs.rename(temp, file);
+    } else {
+      await fs.unlink(temp).catch(() => {});
+      throw error;
+    }
+  }
+}
+
+async function settings(values, positionals, loadedConfig = null) {
+  const action = positionals.shift() ?? 'show';
+  const config = loadedConfig ?? (await requireConfig(values));
+  if (!config.configPath) throw new Error('settings requires a config file with a path');
+  if (action === 'show') {
+    emit({
+      configPath: config.configPath,
+      policy: config.policy,
+      assistance: config.assistance,
+      explanation: assistanceExplanation(config.assistance),
+      note: 'settings are owner-CLI only; MCP exposes no settings mutation or approval tool.',
+    });
+    return;
+  }
+  if (action !== 'set') throw new Error('settings action must be show or set');
+  const key = positionals.shift();
+  if (!key) throw new Error('settings set requires KEY VALUE');
+  const rawValue = positionals.shift();
+  if (rawValue === undefined) throw new Error('settings set requires KEY VALUE');
+  if (positionals.length > 0) throw new Error('settings set accepts exactly one KEY and VALUE');
+  const value = parseSettingValue(key, rawValue);
+  let raw;
+  try {
+    raw = JSON.parse(await fs.readFile(config.configPath, 'utf8'));
+  } catch (error) {
+    throw new Error(`cannot read existing config: ${error.message}`);
+  }
+  setDeep(raw, key, value);
+  // Validate the complete candidate before touching the real file. A malformed
+  // value or inconsistent config therefore never partially overwrites settings.
+  const validated = await normalizeConfig(raw, {
+    baseDir: path.dirname(config.configPath),
+    configPath: config.configPath,
+  });
+  await writeJsonAtomic(config.configPath, raw);
+  emit({
+    updated: true,
+    key,
+    value,
+    configPath: config.configPath,
+    policy: validated.policy,
+    assistance: validated.assistance,
   });
 }
 
@@ -586,6 +733,11 @@ async function main() {
 
   const config = await requireConfig(values);
 
+  if (command === 'settings' || command === 'config') {
+    await settings(values, positionals, config);
+    return;
+  }
+
   if (command === 'interactive') {
     await interactive(values);
     return;
@@ -600,6 +752,22 @@ async function main() {
     if (values.mode && !['ask', 'auto'].includes(values.mode)) {
       throw new Error('--mode must be ask or auto');
     }
+    let activity = null;
+    if (values.activity) {
+      try {
+        activity = JSON.parse(values.activity);
+      } catch (error) {
+        throw new Error(`--activity must be a JSON object: ${error.message}`);
+      }
+      if (!activity || typeof activity !== 'object' || Array.isArray(activity)) {
+        throw new Error('--activity must be a JSON object');
+      }
+    }
+    if (values['needs-skill'] || values.manual) {
+      activity = { ...(activity ?? {}) };
+      if (values['needs-skill']) activity.needsSkill = true;
+      if (values.manual) activity.manualRequest = true;
+    }
     const result = await prepareTask({
       config,
       task,
@@ -609,8 +777,15 @@ async function main() {
       mode: values.mode ?? null,
       intent: command === 'route' ? 'route' : 'run',
       cwd: process.cwd(),
+      taskId: values['task-id'] ?? null,
+      sessionId: values['session-id'] ?? null,
+      event: values.manual ? 'manual_request' : values.event ?? null,
+      activity,
     });
-    emit(result.pendingChoice ?? result.run);
+    emit({
+      ...(result.pendingChoice ?? result.run),
+      ...(result.trigger ? { trigger: result.trigger } : {}),
+    });
     return;
   }
   if (command === 'choose') {

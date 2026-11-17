@@ -1,3 +1,65 @@
+export type AssistanceProfile = 'manual' | 'conservative' | 'balanced' | 'proactive' | 'custom';
+
+export type TriggerEvent =
+  | 'new_task'
+  | 'routine_continuation'
+  | 'phase_change'
+  | 'material_family_change'
+  | 'requirements_change'
+  | 'repeated_failure'
+  | 'delivery'
+  | 'manual_request';
+
+export interface AssistanceSettings {
+  enabled: boolean;
+  profile: AssistanceProfile;
+  triggers: {
+    newTask: boolean;
+    ambiguousNewTask: boolean;
+    phaseChange: boolean;
+    materialFamilyChange: boolean;
+    requirementsChange: boolean;
+    repeatedFailure: boolean;
+    delivery: boolean;
+    smallTalkSkip: boolean;
+    simpleTaskSkip: boolean;
+    failureThreshold: number;
+    deliveryRecheck: boolean;
+  };
+  budget: { maxAutomaticChecksPerTask: number };
+  state: { maxTasks: number };
+}
+
+export interface TriggerExplanation {
+  schema: 'skill-conductor/trigger/v0.1';
+  at: string;
+  action: 'trigger' | 'suppress' | 'reuse' | 'pending' | 'disabled';
+  event: TriggerEvent;
+  reasonCode: string;
+  explanation: string;
+  profile: AssistanceProfile;
+  automatic: boolean;
+  taskId?: string | null;
+  sessionId?: string | null;
+  counters?: Record<string, number> | null;
+  budget?: { used: number; limit: number; exhausted: boolean } | null;
+  [key: string]: unknown;
+}
+
+export interface HostActivity {
+  /** Host-provided hint that a specialized skill is justified. Not observed telemetry. */
+  needsSkill?: boolean;
+  manualRequest?: boolean;
+  materialFamily?: string;
+  materialFamilies?: string[];
+  requirementsKey?: string;
+  errorFingerprint?: string;
+  errorCount?: number;
+  hint?: string;
+  phase?: string;
+  [key: string]: unknown;
+}
+
 export interface Candidate {
   id: string;
   name: string | null;
@@ -40,6 +102,23 @@ export interface RunRecord {
   status: string;
   task: string;
   phase: string | null;
+  taskId?: string | null;
+  sessionId?: string | null;
+  taskKey?: string | null;
+  adaptive?: {
+    trigger: TriggerExplanation;
+    fingerprint?: string | null;
+    phase?: string | null;
+    materialFamilies?: string[];
+    requirementKey?: string | null;
+    catalogSignature?: string | null;
+    automatic?: boolean;
+  } | null;
+  sourceRunId?: string | null;
+  reused?: boolean;
+  executedForThisEvent?: boolean;
+  context?: Record<string, unknown> | null;
+  instruction?: string;
   candidates: Candidate[];
   recommendation: PendingChoice['recommendation'];
   states: Record<string, boolean | string>;
@@ -54,7 +133,6 @@ export interface RunRecord {
   activation: null | Record<string, unknown>;
   execution: null | Record<string, unknown>;
   verification: null | Record<string, unknown>;
-  context?: Record<string, unknown>;
   [key: string]: unknown;
 }
 
@@ -77,6 +155,7 @@ export interface ConductorConfig {
   };
   policy: { mode: 'ask' | 'auto' };
   capabilities: string[];
+  assistance: AssistanceSettings;
   execution: {
     enabled: boolean;
     allowlist: string[];
@@ -146,7 +225,13 @@ export function prepareTask(input: {
   executor?: HostExecutor | null;
   verifier?: Verifier | null;
   cwd?: string;
-}): Promise<{ run: RunRecord; pendingChoice: PendingChoice | null }>;
+  /** Stable host task identity. Without it, documented v0.1 one-shot behavior is preserved. */
+  taskId?: string | null;
+  sessionId?: string | null;
+  event?: TriggerEvent | null;
+  /** Host event signals only; no agent-observation telemetry is invented. */
+  activity?: HostActivity | null;
+}): Promise<{ run: RunRecord; pendingChoice: PendingChoice | null; trigger: TriggerExplanation }>;
 
 export function chooseRun(input: {
   config: ConductorConfig;
@@ -182,3 +267,35 @@ export function listRuns(input: { config: ConductorConfig }): Promise<Array<Reco
 export function loadRunContext(input: { config: ConductorConfig; runId: string }): Promise<Record<string, unknown>>;
 
 export function startMcpServer(input: { config: ConductorConfig }): Promise<void>;
+
+export const ASSISTANCE_PROFILES: readonly AssistanceProfile[];
+export const TRIGGER_EVENTS: readonly TriggerEvent[];
+export function normalizeAssistance(raw?: unknown): AssistanceSettings;
+export function assistanceExplanation(
+  assistance?: AssistanceSettings,
+): Record<string, unknown>;
+export function classifyTask(
+  task: string,
+  files?: string[],
+): { kind: 'empty' | 'smalltalk' | 'simple' | 'specialized' | 'ambiguous'; evidence: string[] };
+export function classifyFileFamilies(files?: string[]): string[];
+export function catalogSignature(config: ConductorConfig): Promise<string>;
+export function loadTaskSession(input: {
+  config: ConductorConfig;
+  taskId: string;
+  sessionId?: string | null;
+}): Promise<Record<string, unknown>>;
+export function saveTaskSession(input: {
+  config: ConductorConfig;
+  session: Record<string, unknown>;
+}): Promise<Record<string, unknown>>;
+export function evaluateAdaptiveTrigger(input: {
+  config: ConductorConfig;
+  taskId?: string | null;
+  sessionId?: string | null;
+  task: string;
+  files?: string[];
+  phase?: string | null;
+  event?: TriggerEvent | null;
+  activity?: HostActivity | null;
+}): Promise<{ action: string; trigger: TriggerExplanation; session: Record<string, unknown> | null }>;

@@ -20,6 +20,10 @@
   "policy": {
     "mode": "ask"
   },
+  "assistance": {
+    "enabled": true,
+    "profile": "balanced"
+  },
   "capabilities": ["filesystem.read", "filesystem.write"],
   "execution": {
     "enabled": true,

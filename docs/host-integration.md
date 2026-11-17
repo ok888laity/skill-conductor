@@ -21,6 +21,37 @@
 
 V2 的服务器位于 `mcp.servers`。本次在 OpenCode 2.2.7 中实测了此结构，模型实际调用了 `conductor_prepare_skills`，获得 `ask / awaiting_choice` 的结果且未激活或执行技能。其他 MCP 客户端按各自的 stdio 进程配置连接同一 CLI。
 
+## 自适应事件接口
+
+宿主应在每次步骤前调用 `prepareTask`，显式提供任务身份和宿主确认的事件：
+
+```js
+const { run, pendingChoice, trigger } = await prepareTask({
+  config,
+  task,
+  taskId: 'stable-task-id',
+  sessionId: 'host-session',
+  event: 'routine_continuation', // 或 new_task / phase_change / material_family_change / requirements_change / repeated_failure / delivery / manual_request
+  phase,
+  files,
+  activity: {
+    needsSkill: false,
+    materialFamilies: ['markdown'],
+    requirementsKey: 'requirements-v1',
+    errorFingerprint: 'same-error-key',
+    errorCount: 2,
+  },
+  selector,
+});
+```
+
+- `activity` 是宿主显式信号，不是对 agent 全部活动的自动观测。没有 `taskId` 时保留旧的一次性行为。
+- `trigger.action` 为 `trigger`/`suppress`/`reuse`/`pending`/`disabled`；每次都带 `reasonCode`、`explanation`、预算和计数。
+- `status:"reused"` 只表示复用已激活上下文：`executedForThisEvent:false`、`execution.status:"not_executed"`，不会重新执行脚本。新输入需要宿主自己完成实际工作。
+- `status:"suppressed"` 不是 `no_match`；预算耗尽、未达失败阈值、当前 phase 被跳过都会显式解释。
+- 相同 pending 指纹重复请求返回同一 `runId`，不要重复向用户展示成新问题。
+- 由所有者 CLI 修改 `assistance.enabled`/profile；MCP 不接受设置变更。
+
 ## 聊天界面如何呈现选择
 
 `prepare_skills` 返回的 JSON 包含：
@@ -44,6 +75,8 @@ node bin\skill-conductor.mjs choose <runId> --config <PATH> --skip
 ```
 
 下一次 `activate_run` / `get_run` 会读取持久化决定。受信任宿主 UI 也可以调用 SDK `chooseRun` 并传入自己的所有者身份；模型输出不能调用这条路径。
+
+MCP 进程在每次 `tools/call` 时重新读取 `--config` 指向的受信任配置。所有者用 CLI 关闭 `assistance.enabled` 后，运行中的 MCP 下一次请求就会返回 `disabled`；配置损坏时请求显式失败，不会继续使用启动时的旧信任副本。MCP 没有设置、审批或切换 auto 的工具。
 
 ## 自主模式
 

@@ -1,6 +1,6 @@
 # Attribution and source boundaries
 
-Skill Conductor v0.1 is an original JavaScript implementation, but its design is deliberately informed by multiple public projects and the existing Agent Skills / SKILL.md conventions. No upstream source code was copied into this repository in this session. Upstream projects are cited below at the level of design patterns, with their limits noted.
+Skill Conductor v0.2 is an original JavaScript implementation, but its design is deliberately informed by multiple public projects and the existing Agent Skills / SKILL.md conventions. The v0.2 adaptive gate combines the before-step hook/phase-boundary ideas cited below with bounded local task state; no upstream implementation was copied. No upstream source code was copied into this repository in this session. Upstream projects are cited below at the level of design patterns, with their limits noted.
 
 Full source-review notes and metadata are in [`research/upstream-review.json`](research/upstream-review.json). That file records 16 documented sources; not every source was code-audited, and `repositoryReview.claimsIndependentlyReproduced` is `false`.
 
