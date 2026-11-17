@@ -129,6 +129,7 @@ export type Verifier = (input: {
 }) => Promise<{ verified: boolean; details?: unknown }> | { verified: boolean; details?: unknown };
 
 export function loadConfig(configPath: string, options?: { cwd?: string }): Promise<ConductorConfig>;
+export function discoverConfigPath(startDir?: string): Promise<string | null>;
 export function normalizeConfig(raw: unknown, options?: { baseDir?: string; configPath?: string | null }): Promise<ConductorConfig>;
 export function discoverCatalog(config: ConductorConfig): Promise<Record<string, unknown>>;
 export function listSkills(input: { config: ConductorConfig }): Promise<Record<string, unknown>>;

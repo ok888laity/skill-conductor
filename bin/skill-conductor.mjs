@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 import fs from 'node:fs/promises';
+import { constants as fsConstants } from 'node:fs';
 import path from 'node:path';
 import readline from 'node:readline';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
-import { loadConfig } from '../src/config.mjs';
+import { discoverConfigPath, loadConfig, normalizeConfig } from '../src/config.mjs';
 import { toErrorObject } from '../src/errors.mjs';
 import { RunStore } from '../src/store.mjs';
 import {
@@ -22,15 +23,23 @@ const HELP = `Skill Conductor v0.1 — host-neutral skill routing
 
 Usage:
   skill-conductor help
-  skill-conductor list --config PATH
-  skill-conductor route TASK --config PATH [--material FILE ...] [--phase X] [--mode ask|auto]
-  skill-conductor run TASK --config PATH [--material FILE ...] [--phase X] [--mode ask|auto]
-  skill-conductor choose RUN_ID --config PATH (--skills ID,ID | --skip) [--activate-only]
-  skill-conductor show RUN_ID --config PATH
-  skill-conductor runs --config PATH
-  skill-conductor interactive --config PATH
-  skill-conductor mcp --config PATH
+  skill-conductor init [--root PATH | --demo]
+  skill-conductor list [--config PATH]
+  skill-conductor route TASK [--config PATH] [--material FILE ...] [--phase X] [--mode ask|auto]
+  skill-conductor run TASK [--config PATH] [--material FILE ...] [--phase X] [--mode ask|auto]
+  skill-conductor choose RUN_ID [--config PATH] (--skills ID,ID | --skip) [--activate-only]
+  skill-conductor show RUN_ID [--config PATH]
+  skill-conductor runs [--config PATH]
+  skill-conductor interactive [--config PATH]
+  skill-conductor mcp [--config PATH]
   skill-conductor demo [--config PATH]
+
+Config discovery: without --config, installed commands look for
+.skill-conductor/config.json (or skill-conductor.config.json) in the working
+directory and then its parents. Explicit --config always takes precedence.
+Run "skill-conductor init" to create a safe local config, or
+"skill-conductor init --demo" to copy the bundled first-party demo fixtures
+into the current directory. Existing files are never overwritten.
 
 Default policy is ask: route/run return "awaiting_choice" when a skill is
 applicable (and never load bodies or execute until an owner choice), or a
@@ -52,6 +61,8 @@ function parse(argv) {
     allowPositionals: true,
     options: {
       config: { type: 'string' },
+      root: { type: 'string' },
+      demo: { type: 'boolean', default: false },
       material: { type: 'string', multiple: true },
       observe: { type: 'string', multiple: true },
       phase: { type: 'string' },
@@ -66,8 +77,179 @@ function parse(argv) {
 }
 
 async function requireConfig(values) {
-  if (!values.config) throw new Error('--config PATH is required');
-  return loadConfig(values.config, { cwd: process.cwd() });
+  if (values.config) return loadConfig(values.config, { cwd: process.cwd() });
+  const discovered = await discoverConfigPath(process.cwd());
+  if (!discovered) {
+    throw new Error(
+      `no skill-conductor config found from ${process.cwd()} upward; run "skill-conductor init --demo" or pass --config PATH`,
+    );
+  }
+  process.stderr.write(`using config: ${discovered}\n`);
+  return loadConfig(discovered, { cwd: process.cwd() });
+}
+
+const DEMO_IDS = ['demo:csv-inspector', 'demo:markdown-report'];
+const DEMO_DATA_NAME = '销售 数据.csv';
+
+function portableConfigPath(cwd, target) {
+  const relative = path.relative(cwd, target);
+  if (relative && !relative.startsWith('..') && !path.isAbsolute(relative)) {
+    return `./${relative.replaceAll('\\', '/')}`;
+  }
+  return target.replaceAll('\\', '/');
+}
+
+function baseSelector() {
+  return {
+    mode: 'lexical',
+    maxCandidates: 20,
+    minScore: 0.8,
+    ambiguityGap: 0.12,
+    semanticAllThreshold: 40,
+    semanticPrefilterLimit: 30,
+    maxSelection: 3,
+    timeoutMs: 60000,
+  };
+}
+
+async function exists(file) {
+  try {
+    await fs.stat(file);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function init(values) {
+  const cwd = process.cwd();
+  const targetDir = path.join(cwd, '.skill-conductor');
+  const configPath = path.join(targetDir, 'config.json');
+  if (await exists(configPath)) {
+    throw new Error(`refusing to overwrite existing config: ${configPath}`);
+  }
+  const demoDir = path.join(targetDir, 'demo');
+  if (values.demo && (await exists(demoDir))) {
+    throw new Error(`refusing to overwrite existing demo directory: ${demoDir}`);
+  }
+  if (values.demo && values.root) throw new Error('use either --demo or --root, not both');
+
+  let raw;
+  let roots;
+  if (values.demo) {
+    const sourceSkills = path.join(packageRoot, 'skills');
+    const sourceData = path.join(packageRoot, 'data', DEMO_DATA_NAME);
+    if (!(await exists(sourceSkills)) || !(await exists(sourceData))) {
+      throw new Error('bundled demo fixtures are missing from this installation');
+    }
+    await fs.mkdir(path.join(demoDir, 'data'), { recursive: true });
+    await fs.cp(sourceSkills, path.join(demoDir, 'skills'), {
+      recursive: true,
+      force: false,
+      errorOnExist: true,
+      dereference: false,
+    });
+    await fs.copyFile(sourceData, path.join(demoDir, 'data', DEMO_DATA_NAME), fsConstants.COPYFILE_EXCL);
+    raw = {
+      roots: [{ path: './demo/skills', namespace: 'demo', trusted: true }],
+      selector: baseSelector(),
+      policy: { mode: 'ask' },
+      capabilities: ['filesystem.read', 'filesystem.write'],
+      execution: {
+        enabled: true,
+        allowlist: DEMO_IDS,
+        trustedSkillIds: DEMO_IDS,
+        timeoutMs: 30000,
+        maxOutputBytes: 65536,
+        maxArtifacts: 20,
+        maxResourceBytes: 262144,
+        stopOnError: true,
+        captureOutput: true,
+        runDir: './runs',
+      },
+      materials: {
+        maxFileBytes: 1048576,
+        maxTotalBytes: 4194304,
+        maxFiles: 16,
+        allowRoots: ['./demo'],
+      },
+      mcp: { allowExecution: false, maxInputBytes: 1048576 },
+    };
+    roots = raw.roots;
+  } else {
+    const root = values.root
+      ? path.resolve(cwd, values.root)
+      : path.join(cwd, 'skills');
+    if (values.root) {
+      let stat;
+      try {
+        stat = await fs.stat(root);
+      } catch {
+        throw new Error(`--root does not exist: ${root}`);
+      }
+      if (!stat.isDirectory()) throw new Error(`--root is not a directory: ${root}`);
+    } else {
+      await fs.mkdir(root, { recursive: true });
+    }
+    // Paths in .skill-conductor/config.json resolve relative to that file's
+    // directory, not the caller's cwd.
+    const rootValue = portableConfigPath(targetDir, root);
+    raw = {
+      roots: [{ path: rootValue, namespace: 'local', trusted: false }],
+      selector: baseSelector(),
+      policy: { mode: 'ask' },
+      capabilities: ['filesystem.read', 'filesystem.write'],
+      execution: {
+        enabled: false,
+        allowlist: [],
+        trustedSkillIds: [],
+        timeoutMs: 30000,
+        maxOutputBytes: 65536,
+        runDir: './runs',
+      },
+      materials: {
+        maxFileBytes: 1048576,
+        maxTotalBytes: 4194304,
+        maxFiles: 16,
+        allowRoots: ['..', rootValue],
+      },
+      mcp: { allowExecution: false, maxInputBytes: 1048576 },
+    };
+    roots = raw.roots;
+  }
+
+  await fs.mkdir(targetDir, { recursive: true });
+  // "wx" is the no-overwrite guarantee even if another process raced us.
+  await fs.writeFile(configPath, `${JSON.stringify(raw, null, 2)}\n`, { encoding: 'utf8', flag: 'wx' });
+  emit({
+    initialized: true,
+    demo: Boolean(values.demo),
+    configPath,
+    configSearch: '.skill-conductor/config.json from the working directory upward',
+    roots,
+    note: values.demo
+      ? 'Only the bundled first-party demo skills are trusted; policy remains ask.'
+      : 'Execution is disabled and no skill script is trusted by this scaffold.',
+  });
+}
+
+async function defaultDemoConfig() {
+  const cwd = process.cwd();
+  const raw = JSON.parse(await fs.readFile(path.join(packageRoot, 'examples', 'config.demo.json'), 'utf8'));
+  raw.roots = [{ path: path.join(packageRoot, 'skills'), namespace: 'demo', trusted: true }];
+  raw.execution.enabled = true;
+  raw.execution.allowlist = DEMO_IDS;
+  raw.execution.trustedSkillIds = DEMO_IDS;
+  // Default demo writes belong to the caller, never the installed package.
+  raw.execution.runDir = path.join(cwd, '.skill-conductor', 'runs');
+  raw.materials.allowRoots = [cwd, path.join(packageRoot, 'data')];
+  raw.policy = { mode: 'ask' };
+  return normalizeConfig(raw, { baseDir: cwd });
+}
+
+function localDemoData(configPath) {
+  const candidate = path.join(path.dirname(configPath), 'demo', 'data', DEMO_DATA_NAME);
+  return candidate;
 }
 
 function taskFromPositionals(positionals) {
@@ -81,11 +263,26 @@ function emit(value) {
 }
 
 async function demo(values) {
-  const configPath = values.config
-    ? path.resolve(process.cwd(), values.config)
-    : path.join(packageRoot, 'examples', 'config.demo.json');
-  const config = await loadConfig(configPath, { cwd: process.cwd() });
-  const dataFile = path.join(packageRoot, 'data', '销售 数据.csv');
+  const cwd = process.cwd();
+  let config;
+  let dataFile;
+  if (values.config) {
+    const configPath = path.resolve(cwd, values.config);
+    config = await loadConfig(configPath, { cwd });
+    const local = localDemoData(configPath);
+    dataFile = (await exists(local)) ? local : path.join(packageRoot, 'data', DEMO_DATA_NAME);
+  } else {
+    const discovered = await discoverConfigPath(cwd);
+    if (discovered) {
+      process.stderr.write(`using config: ${discovered}\n`);
+      config = await loadConfig(discovered, { cwd });
+      const local = localDemoData(discovered);
+      dataFile = (await exists(local)) ? local : path.join(packageRoot, 'data', DEMO_DATA_NAME);
+    } else {
+      config = await defaultDemoConfig();
+      dataFile = path.join(packageRoot, 'data', DEMO_DATA_NAME);
+    }
+  }
   const task = '请根据 CSV 中的销售数据统计关键指标，并生成一份 Markdown 报告。';
   const { run } = await prepareTask({
     config,
@@ -94,7 +291,7 @@ async function demo(values) {
     phase: 'reporting',
     mode: 'auto',
     intent: 'run',
-    cwd: packageRoot,
+    cwd,
     verifier: async ({ execution }) => {
       const artifactDir = execution?.artifactDir ?? '';
       try {
@@ -374,6 +571,11 @@ async function main() {
   const command = positionals.shift();
   if (!command || command === 'help' || values.help) {
     process.stdout.write(`${HELP}\n`);
+    return;
+  }
+
+  if (command === 'init') {
+    await init(values);
     return;
   }
 

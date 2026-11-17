@@ -10,6 +10,11 @@ Default behavior is **ask**: routing produces candidates and a recommendation,
 persists a pending choice, and does not activate a skill body, run a script, or
 call a host executor. Autonomous mode is an explicit opt-in.
 
+Version 0.1.1 adds local initialization, working-directory config discovery,
+and caller-owned demo output. See the [onboarding and four-domain test report](docs/onboarding-test-report.md)
+and [machine-readable results](docs/onboarding-test-results.json): 40 real skills,
+64 frozen development tasks, four audited native executions, and preserved failures.
+
 ## Requirements
 
 Optional real-skill test setup and cleanup are documented in [docs/reproduce-live-tests.md](docs/reproduce-live-tests.md).
@@ -17,10 +22,45 @@ Optional real-skill test setup and cleanup are documented in [docs/reproduce-liv
 - Node.js >= 20.11
 - No runtime dependencies
 
-## Quickstart (offline demo)
+## Install and first run
+
+Node.js >= 20.11 is required (verified on Node 24.22.3 / npm 11.19.1). The bare
+npm registry name `skill-conductor` is **not available (E404)**; use the public
+GitHub HTTPS tarball instead of `npm install skill-conductor`.
+
+One-shot run from any working directory (outputs stay in that directory):
 
 ```sh
-node bin/skill-conductor.mjs list --config examples/config.demo.json
+npx --yes --package=https://github.com/ok888laity/skill-conductor/archive/refs/heads/main.tar.gz skill-conductor demo
+```
+
+Global install, then initialize and run:
+
+```sh
+npm install --global https://github.com/ok888laity/skill-conductor/archive/refs/heads/main.tar.gz
+skill-conductor init --demo
+skill-conductor demo
+```
+
+`init` writes `.skill-conductor/config.json` and an empty `./skills` root in the
+current directory, keeps policy at `ask`, and leaves `execution.enabled=false`
+(no script is trusted). `init --root PATH` uses an existing skill root. Existing
+files are never overwritten. `init --demo` copies the four bundled first-party
+demo skills and the synthetic CSV into `.skill-conductor/demo/` and trusts only
+`demo:csv-inspector` and `demo:markdown-report`; policy is still `ask`, and the
+`demo` command itself is the explicit auto opt-in.
+
+Installed commands search for `.skill-conductor/config.json` and then
+`skill-conductor.config.json` from the working directory upward. An explicit
+`--config PATH` always wins. `demo` also works without init, but its runs and
+artifacts go to `.skill-conductor/runs/` under the caller, never into the
+installed package. With an explicit config, that config's `execution.runDir` is
+preserved.
+
+## Quickstart from the source tree (offline demo)
+
+```sh
+node bin/skill-conductor.mjs init --demo
 node bin/skill-conductor.mjs demo
 ```
 

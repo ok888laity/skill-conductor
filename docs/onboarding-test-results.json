@@ -1,0 +1,5263 @@
+{
+  "schema": "skill-conductor/public-onboarding-test-results/v1",
+  "testedOn": "2026-11-17",
+  "candidateVersion": "0.1.1",
+  "baselineVersion": "0.1.0",
+  "baselineCommit": "6c9f06bd36ab8ad51c15decebd2bd7bbeac78205",
+  "model": "opencode-go/deepseek-v4.1-flash#low",
+  "caseSha256": "23fc3ae3f426d42fea7dd75ff401122c549826ccec54ad0b9c40816f1d964d78",
+  "catalogSha256": "84c8b0688a83621d24140269c6bc4912ecc40c942c1bf395d3c9dcb7079816b5",
+  "scope": "Development integration fixtures: the same model authored the tasks and selected skills. This is not held-out accuracy. The 64-case run used task intent and metadata, not actual document extraction.",
+  "sources": [
+    {
+      "id": "office:anthropic-pdf",
+      "domain": "office",
+      "name": "pdf",
+      "repo": "anthropics/skills",
+      "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
+      "skillMdSha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
+      "path": "skills/pdf"
+    },
+    {
+      "id": "office:anthropic-docx",
+      "domain": "office",
+      "name": "docx",
+      "repo": "anthropics/skills",
+      "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
+      "skillMdSha256": "895d5aa6c4cd98e4aed4c995d846f056f3549086e79bcd6617afea6014f82288",
+      "path": "skills/docx"
+    },
+    {
+      "id": "office:anthropic-pptx",
+      "domain": "office",
+      "name": "pptx",
+      "repo": "anthropics/skills",
+      "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
+      "skillMdSha256": "598c981d93f2173b251f86a4bc94e9fb4e4f5ddaa314ba2dd4eca24b7a07808e",
+      "path": "skills/pptx"
+    },
+    {
+      "id": "office:anthropic-xlsx",
+      "domain": "office",
+      "name": "xlsx",
+      "repo": "anthropics/skills",
+      "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
+      "skillMdSha256": "f32b1c2b5d5d31e02964df110d6489613d9345f86830c118cfe24159d8448ce6",
+      "path": "skills/xlsx"
+    },
+    {
+      "id": "office:anthropic-doc-coauthoring",
+      "domain": "office",
+      "name": "doc-coauthoring",
+      "repo": "anthropics/skills",
+      "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
+      "skillMdSha256": "2e47d78846faeea4a56e9809c52700087a15a2155a3f293a3efbaded81398ef4",
+      "path": "skills/doc-coauthoring"
+    },
+    {
+      "id": "office:anthropic-internal-comms",
+      "domain": "office",
+      "name": "internal-comms",
+      "repo": "anthropics/skills",
+      "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
+      "skillMdSha256": "067b7587a344a928fc6534ef66b1bcd591fc7c26d207ea7ca3334aeb678d6475",
+      "path": "skills/internal-comms"
+    },
+    {
+      "id": "office:openai-pdf",
+      "domain": "office",
+      "name": "pdf",
+      "repo": "openai/skills",
+      "commit": "49f948faa9258a0c61caceaf225e179651397431",
+      "skillMdSha256": "d108cf2b36355ab37eb5962933f4d09785ec002f3105c506129320209306b9d2",
+      "path": "skills/.curated/pdf"
+    },
+    {
+      "id": "office:openai-notion-knowledge-capture",
+      "domain": "office",
+      "name": "notion-knowledge-capture",
+      "repo": "openai/skills",
+      "commit": "49f948faa9258a0c61caceaf225e179651397431",
+      "skillMdSha256": "b49383b229bc766190ea22bb58502cfcf7e08449f5fce55a104eef1e54e27f00",
+      "path": "skills/.curated/notion-knowledge-capture"
+    },
+    {
+      "id": "office:openai-notion-research-documentation",
+      "domain": "office",
+      "name": "notion-research-documentation",
+      "repo": "openai/skills",
+      "commit": "49f948faa9258a0c61caceaf225e179651397431",
+      "skillMdSha256": "e88a46da978cf6f088a788fa92ee736df699a355a72f41f14bdc258bf3ef57e7",
+      "path": "skills/.curated/notion-research-documentation"
+    },
+    {
+      "id": "office:openai-notion-meeting-intelligence",
+      "domain": "office",
+      "name": "notion-meeting-intelligence",
+      "repo": "openai/skills",
+      "commit": "49f948faa9258a0c61caceaf225e179651397431",
+      "skillMdSha256": "bad61faccbbe0f2cab53bcfbc4cb22f847ba8593ef14c2e37fea5b9b03346332",
+      "path": "skills/.curated/notion-meeting-intelligence"
+    },
+    {
+      "id": "frontend:anthropic-frontend-design",
+      "domain": "frontend",
+      "name": "frontend-design",
+      "repo": "anthropics/skills",
+      "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
+      "skillMdSha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+      "path": "skills/frontend-design"
+    },
+    {
+      "id": "frontend:anthropic-web-artifacts-builder",
+      "domain": "frontend",
+      "name": "web-artifacts-builder",
+      "repo": "anthropics/skills",
+      "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
+      "skillMdSha256": "81c5002c6643b0de7b8710b00e7a9038daa6fb9b68d59870ee6adb12da8d10f8",
+      "path": "skills/web-artifacts-builder"
+    },
+    {
+      "id": "frontend:anthropic-webapp-testing",
+      "domain": "frontend",
+      "name": "webapp-testing",
+      "repo": "anthropics/skills",
+      "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
+      "skillMdSha256": "51b7349e77ec63b7744a6f63647e7566a0b4d2e301121cc10e8c2113af6556a2",
+      "path": "skills/webapp-testing"
+    },
+    {
+      "id": "frontend:anthropic-theme-factory",
+      "domain": "frontend",
+      "name": "theme-factory",
+      "repo": "anthropics/skills",
+      "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
+      "skillMdSha256": "c35893e221e28895c52143cc11bf30e41a44817796b39d4b15727dadc9796552",
+      "path": "skills/theme-factory"
+    },
+    {
+      "id": "frontend:vercel-composition-patterns",
+      "domain": "frontend",
+      "name": "vercel-composition-patterns",
+      "repo": "vercel-labs/agent-skills",
+      "commit": "1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62",
+      "skillMdSha256": "e38e0eaa609316b10423a9a138ed95e35099accd3f735585295c8a8f165c28a3",
+      "path": "skills/composition-patterns"
+    },
+    {
+      "id": "frontend:vercel-react-best-practices",
+      "domain": "frontend",
+      "name": "vercel-react-best-practices",
+      "repo": "vercel-labs/agent-skills",
+      "commit": "1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62",
+      "skillMdSha256": "71ed7794962fa6e803ee83030517b5b93a9f70fbfeb431ec4535c5480a8d8355",
+      "path": "skills/react-best-practices"
+    },
+    {
+      "id": "frontend:vercel-react-native-skills",
+      "domain": "frontend",
+      "name": "vercel-react-native-skills",
+      "repo": "vercel-labs/agent-skills",
+      "commit": "1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62",
+      "skillMdSha256": "4012750a5ccbe064ca04af3835d5d1b011979d2d09d9b6df1c8128fac58e0a66",
+      "path": "skills/react-native-skills"
+    },
+    {
+      "id": "frontend:vercel-react-view-transitions",
+      "domain": "frontend",
+      "name": "vercel-react-view-transitions",
+      "repo": "vercel-labs/agent-skills",
+      "commit": "1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62",
+      "skillMdSha256": "693acbddd1d2dcf774286867efbc9a5c09dce2da6f21f8e12618187a92f2106a",
+      "path": "skills/react-view-transitions"
+    },
+    {
+      "id": "frontend:vercel-web-design-guidelines",
+      "domain": "frontend",
+      "name": "web-design-guidelines",
+      "repo": "vercel-labs/agent-skills",
+      "commit": "1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62",
+      "skillMdSha256": "f4647ca866a3accf763777f83e7682954f0187cd6bea7eea0399796652414e8f",
+      "path": "skills/web-design-guidelines"
+    },
+    {
+      "id": "frontend:vercel-vercel-optimize",
+      "domain": "frontend",
+      "name": "vercel-optimize",
+      "repo": "vercel-labs/agent-skills",
+      "commit": "1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62",
+      "skillMdSha256": "95ae2683b30d892d165af92a350c5628b68106f395a59b448857b654e306ed91",
+      "path": "skills/vercel-optimize"
+    },
+    {
+      "id": "development:superpowers-brainstorming",
+      "domain": "development",
+      "name": "brainstorming",
+      "repo": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "skillMdSha256": "2c9ca71f94886f9ca9f4aef055f7cafb3e1a9bdf3aeebf8f4cb547c69405d207",
+      "path": "skills/brainstorming"
+    },
+    {
+      "id": "development:superpowers-writing-plans",
+      "domain": "development",
+      "name": "writing-plans",
+      "repo": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "skillMdSha256": "a6c67c1900064347c2a329990dd3c555657c51c3ec53b259a08aa01a2c26139a",
+      "path": "skills/writing-plans"
+    },
+    {
+      "id": "development:superpowers-executing-plans",
+      "domain": "development",
+      "name": "executing-plans",
+      "repo": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "skillMdSha256": "deaf176fa179827e80f2ea3101db3ea90fdf562ebef340eba761e4687940f5f5",
+      "path": "skills/executing-plans"
+    },
+    {
+      "id": "development:superpowers-systematic-debugging",
+      "domain": "development",
+      "name": "systematic-debugging",
+      "repo": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "skillMdSha256": "51c6435d98c83c42c96ba7c35725a0b2c376cd487fb1a4e6bd0ddbe7e33ef202",
+      "path": "skills/systematic-debugging"
+    },
+    {
+      "id": "development:superpowers-test-driven-development",
+      "domain": "development",
+      "name": "test-driven-development",
+      "repo": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "skillMdSha256": "64b03fce4aee5a97a93160cea8111f3ba13a17b7c001db4bd5836d67fd10705d",
+      "path": "skills/test-driven-development"
+    },
+    {
+      "id": "development:superpowers-verification-before-completion",
+      "domain": "development",
+      "name": "verification-before-completion",
+      "repo": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "skillMdSha256": "2befe7fc55bcadaa3d97dd9e8efeb633d2561c0ebe74c5a8b17c4d9e7e4520b3",
+      "path": "skills/verification-before-completion"
+    },
+    {
+      "id": "development:superpowers-requesting-code-review",
+      "domain": "development",
+      "name": "requesting-code-review",
+      "repo": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "skillMdSha256": "2180e14a448e9410bec88e6646a2d1f0ce7fdd58de27388c1e052e929679d2bc",
+      "path": "skills/requesting-code-review"
+    },
+    {
+      "id": "development:superpowers-receiving-code-review",
+      "domain": "development",
+      "name": "receiving-code-review",
+      "repo": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "skillMdSha256": "091df1629510af1b92fc4abd6f96732ebedb4cb2c0f3457e8f2740b0504a2438",
+      "path": "skills/receiving-code-review"
+    },
+    {
+      "id": "development:superpowers-finishing-a-development-branch",
+      "domain": "development",
+      "name": "finishing-a-development-branch",
+      "repo": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "skillMdSha256": "8db5a922b242dd4e1bf824cb91c13b3e8d8e8a86d6ceaf7f0774eb9cce909d65",
+      "path": "skills/finishing-a-development-branch"
+    },
+    {
+      "id": "development:superpowers-using-git-worktrees",
+      "domain": "development",
+      "name": "using-git-worktrees",
+      "repo": "obra/superpowers",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "skillMdSha256": "8cfb86f121269e8f7f12361e6795c4f6738828340e28964c9229d365666c9edd",
+      "path": "skills/using-git-worktrees"
+    },
+    {
+      "id": "data:scientific-exploratory-data-analysis",
+      "domain": "data",
+      "name": "exploratory-data-analysis",
+      "repo": "K-Dense-AI/scientific-agent-skills",
+      "commit": "ec59a29a03d5c40f73ab40878df04860bc00e876",
+      "skillMdSha256": "955c4cefa49106dd03b55cbd62603bab2d2fb678e627dd452ba62040c7128484",
+      "path": "skills/exploratory-data-analysis"
+    },
+    {
+      "id": "data:scientific-polars",
+      "domain": "data",
+      "name": "polars",
+      "repo": "K-Dense-AI/scientific-agent-skills",
+      "commit": "ec59a29a03d5c40f73ab40878df04860bc00e876",
+      "skillMdSha256": "05d64a001190b516bc922bac616483c3109a6d29c3e9950e3e2d6c31b9415e79",
+      "path": "skills/polars"
+    },
+    {
+      "id": "data:scientific-matplotlib",
+      "domain": "data",
+      "name": "matplotlib",
+      "repo": "K-Dense-AI/scientific-agent-skills",
+      "commit": "ec59a29a03d5c40f73ab40878df04860bc00e876",
+      "skillMdSha256": "60b80aaa802e1a88db30729611789bf5ee92b3f2a7bb695502bac10dd255ee86",
+      "path": "skills/matplotlib"
+    },
+    {
+      "id": "data:scientific-seaborn",
+      "domain": "data",
+      "name": "seaborn",
+      "repo": "K-Dense-AI/scientific-agent-skills",
+      "commit": "ec59a29a03d5c40f73ab40878df04860bc00e876",
+      "skillMdSha256": "d1500d1e3d9db1db4c72cd272861378d1b98b0b5a5a98e8a3fca5a45bc0c6b2e",
+      "path": "skills/seaborn"
+    },
+    {
+      "id": "data:scientific-scientific-visualization",
+      "domain": "data",
+      "name": "scientific-visualization",
+      "repo": "K-Dense-AI/scientific-agent-skills",
+      "commit": "ec59a29a03d5c40f73ab40878df04860bc00e876",
+      "skillMdSha256": "8cbde7cdc10d959cf72cfd08335cc8ce996247eee6ebdb900eb64a4cb0ff34a3",
+      "path": "skills/scientific-visualization"
+    },
+    {
+      "id": "data:scientific-statistical-analysis",
+      "domain": "data",
+      "name": "statistical-analysis",
+      "repo": "K-Dense-AI/scientific-agent-skills",
+      "commit": "ec59a29a03d5c40f73ab40878df04860bc00e876",
+      "skillMdSha256": "e112848726b3713267cac65e4e2c15491a0a26ee1ed628db01195f7e43f97997",
+      "path": "skills/statistical-analysis"
+    },
+    {
+      "id": "data:scientific-statistical-power",
+      "domain": "data",
+      "name": "statistical-power",
+      "repo": "K-Dense-AI/scientific-agent-skills",
+      "commit": "ec59a29a03d5c40f73ab40878df04860bc00e876",
+      "skillMdSha256": "a969660eafdc3504ac36e49bd7ded00e18b00fe5cef5699940d5d8281e24dd3d",
+      "path": "skills/statistical-power"
+    },
+    {
+      "id": "data:scientific-scikit-learn",
+      "domain": "data",
+      "name": "scikit-learn",
+      "repo": "K-Dense-AI/scientific-agent-skills",
+      "commit": "ec59a29a03d5c40f73ab40878df04860bc00e876",
+      "skillMdSha256": "a1765797d072ab40094522abe68fb04505d0881f66b7dfceeb8582422dbe488d",
+      "path": "skills/scikit-learn"
+    },
+    {
+      "id": "data:scientific-geopandas",
+      "domain": "data",
+      "name": "geopandas",
+      "repo": "K-Dense-AI/scientific-agent-skills",
+      "commit": "ec59a29a03d5c40f73ab40878df04860bc00e876",
+      "skillMdSha256": "c03a46f911535326802af476208a1e04de13ea385f4d5309b022ad931826b222",
+      "path": "skills/geopandas"
+    },
+    {
+      "id": "data:scientific-sympy",
+      "domain": "data",
+      "name": "sympy",
+      "repo": "K-Dense-AI/scientific-agent-skills",
+      "commit": "ec59a29a03d5c40f73ab40878df04860bc00e876",
+      "skillMdSha256": "bb97087bdddccc845401737ddc7f7a8da1c14ced5e8d40da01271c991ac46e23",
+      "path": "skills/sympy"
+    }
+  ],
+  "domains": [
+    {
+      "domain": "office",
+      "label": "办公文档与知识整理",
+      "skillCount": 10,
+      "total": 14,
+      "passed": 14
+    },
+    {
+      "domain": "frontend",
+      "label": "前端界面与体验",
+      "skillCount": 10,
+      "total": 14,
+      "passed": 14
+    },
+    {
+      "domain": "development",
+      "label": "软件开发与调试",
+      "skillCount": 10,
+      "total": 14,
+      "passed": 13
+    },
+    {
+      "domain": "data",
+      "label": "数据分析与可视化",
+      "skillCount": 10,
+      "total": 14,
+      "passed": 13
+    },
+    {
+      "domain": "cross-domain",
+      "label": "跨领域混合候选池",
+      "skillCount": 40,
+      "total": 8,
+      "passed": 8
+    }
+  ],
+  "routing": {
+    "total": 64,
+    "passed": 62,
+    "failed": 2,
+    "negativeCases": 5,
+    "noMatchCorrect": 5,
+    "originalLabelsChanged": false,
+    "results": [
+      {
+        "id": "office-01",
+        "domain": "office",
+        "pool": "office-10",
+        "task": "把这份 80 页的扫描版合同 PDF 里的文字全部提取出来，并生成一份可以搜索的新 PDF。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "office:anthropic-pdf"
+          ],
+          "allowedIds": [
+            "office:anthropic-pdf"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "office:anthropic-pdf"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "office:anthropic-pdf"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "office:anthropic-pdf"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "office:anthropic-pdf",
+            "reason": "扫描版 PDF 的文字提取与生成可搜索 PDF 属于 OCR 场景，该技能的描述明确覆盖 PDF 文本提取、OCR 及生成新 PDF。"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "office-02",
+        "domain": "office",
+        "pool": "office-10",
+        "task": "根据我们上周讨论的提纲，生成一份带目录、页码和页眉的 Word 项目说明书。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "office:anthropic-docx"
+          ],
+          "allowedIds": [
+            "office:anthropic-docx"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "office:anthropic-docx"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "office:anthropic-docx"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "office:anthropic-docx"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "office:anthropic-docx",
+            "reason": "The user is asking for a Word (.docx) deliverable with a table of contents, page numbers, and headers, which is exactly the docx skill's scope for creating professional Word documents."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "office-03",
+        "domain": "office",
+        "pool": "office-10",
+        "task": "Turn this product brief into a 12-slide deck using our template, and add speaker notes.",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "office:anthropic-pptx"
+          ],
+          "allowedIds": [
+            "office:anthropic-pptx"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "office:anthropic-pptx"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "office:anthropic-pptx"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "office:anthropic-pptx"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "office:anthropic-pptx",
+            "reason": "Task is to build a 12-slide deck from a brief using a template, with speaker notes — all core .pptx creation/editing work explicitly covered by this skill."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "office-04",
+        "domain": "office",
+        "pool": "office-10",
+        "task": "清理这个销售 CSV：统一日期格式、修正错位表头，输出带公式汇总的 xlsx。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "office:anthropic-xlsx"
+          ],
+          "allowedIds": [
+            "office:anthropic-xlsx"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "office:anthropic-xlsx"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "office:anthropic-xlsx"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "office:anthropic-xlsx"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "office:anthropic-xlsx",
+            "reason": "Task is cleaning a sales CSV (header repair, date normalization) with an xlsx deliverable containing formula summaries; spreadsheet skill covers CSV cleanup into xlsx."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "office-05",
+        "domain": "office",
+        "pool": "office-10",
+        "task": "我只有一个模糊的想法，想一步步和你把技术方案文档写清楚，再整理成可评审的版本。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "office:anthropic-doc-coauthoring"
+          ],
+          "allowedIds": [
+            "office:anthropic-doc-coauthoring"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "office:anthropic-doc-coauthoring"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "office:anthropic-doc-coauthoring"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "office:anthropic-doc-coauthoring"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "office:anthropic-doc-coauthoring",
+            "reason": "用户从模糊想法出发，需要结构化协作逐步把技术方案写清楚并整理成可评审文档，正是文档协作工作流的核心场景。"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "office-06",
+        "domain": "office",
+        "pool": "office-10",
+        "task": "Write the quarterly all-hands update covering project wins, team changes, and next quarter's priorities.",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "office:anthropic-internal-comms"
+          ],
+          "allowedIds": [
+            "office:anthropic-internal-comms"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "office:anthropic-internal-comms"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "office:anthropic-internal-comms"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "office:anthropic-internal-comms"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "office:anthropic-internal-comms",
+            "reason": "Quarterly all-hands update is an internal leadership communication covering wins, team changes, and priorities."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "office-07",
+        "domain": "office",
+        "pool": "office-10",
+        "task": "检查这份 PDF 的版式：把每一页渲染出来，确认表格跨页和图片位置没有错位。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "office:openai-pdf"
+          ],
+          "allowedIds": [
+            "office:openai-pdf"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "office:openai-pdf"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "office:openai-pdf"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "office:openai-pdf"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "office:openai-pdf",
+            "reason": "Task is a PDF layout review requiring page rendering and visual checks of tables and images; this skill explicitly covers rendering-based layout verification."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "office-08",
+        "domain": "office",
+        "pool": "office-10",
+        "task": "把这次访谈的对话整理成 Notion 知识库页面，包含决策、待办和互相链接。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "office:openai-notion-knowledge-capture"
+          ],
+          "allowedIds": [
+            "office:openai-notion-knowledge-capture"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "office:openai-notion-knowledge-capture"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "office:openai-notion-knowledge-capture"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "office:openai-notion-knowledge-capture"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "office:openai-notion-knowledge-capture",
+            "reason": "任务是把访谈对话转为带决策、待办与互链的 Notion 知识库页面，正对应知识捕获与结构化 wiki 条目技能。"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "office-09",
+        "domain": "office",
+        "pool": "office-10",
+        "task": "Search across several pages in our Notion workspace and write a cited competitor comparison brief.",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "office:openai-notion-research-documentation"
+          ],
+          "allowedIds": [
+            "office:openai-notion-research-documentation"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "office:openai-notion-research-documentation"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "office:openai-notion-research-documentation"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "office:openai-notion-research-documentation"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "office:openai-notion-research-documentation",
+            "reason": "Task is cross-Notion-source research synthesized into a cited comparison brief, exactly matching this skill's purpose."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "office-10",
+        "domain": "office",
+        "pool": "office-10",
+        "task": "明天要和客户开会，从 Notion 里找背景资料，帮我准备议程和会前阅读材料。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "office:openai-notion-meeting-intelligence"
+          ],
+          "allowedIds": [
+            "office:openai-notion-meeting-intelligence"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "office:openai-notion-meeting-intelligence"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "office:openai-notion-meeting-intelligence"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "office:openai-notion-meeting-intelligence"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "office:openai-notion-meeting-intelligence",
+            "reason": "Directly matches preparing meeting agenda and pre-read materials using Notion context for an upcoming client meeting"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "office-11",
+        "domain": "office",
+        "pool": "office-10",
+        "task": "这份扫描合同要 OCR 提取条款，还要核对原件盖章位置和版面有没有异常。",
+        "expected": {
+          "selectionMode": "exclusive-choice-or-multi",
+          "allowedIds": [
+            "office:anthropic-pdf",
+            "office:openai-pdf"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "office:anthropic-pdf"
+            ],
+            [
+              "office:openai-pdf"
+            ],
+            [
+              "office:anthropic-pdf",
+              "office:openai-pdf"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "office:anthropic-pdf",
+            "office:openai-pdf"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "office:openai-pdf",
+          "office:anthropic-pdf"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "office:openai-pdf",
+            "reason": "扫描合同需渲染页面做视觉核查，核对盖章位置与版面异常，符合该技能强调的渲染与版面检查"
+          },
+          {
+            "id": "office:anthropic-pdf",
+            "reason": "需要从扫描 PDF 中 OCR 提取条款文本，符合该技能对扫描件 OCR 的覆盖"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "office-12",
+        "domain": "office",
+        "pool": "office-10",
+        "task": "我有一份还很粗糙的项目提案草稿，想边讨论边理顺结构，最后交付一份格式正式的 Word 文档。",
+        "expected": {
+          "selectionMode": "single-required-with-optional",
+          "requiredIds": [
+            "office:anthropic-docx"
+          ],
+          "allowedIds": [
+            "office:anthropic-docx",
+            "office:anthropic-doc-coauthoring"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "office:anthropic-docx"
+            ],
+            [
+              "office:anthropic-docx",
+              "office:anthropic-doc-coauthoring"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "office:anthropic-docx",
+            "office:anthropic-doc-coauthoring"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "office:anthropic-doc-coauthoring",
+          "office:anthropic-docx"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "office:anthropic-doc-coauthoring",
+            "reason": "User wants to discuss and iteratively structure a rough project proposal draft, which is the skill's structured co-authoring workflow."
+          },
+          {
+            "id": "office:anthropic-docx",
+            "reason": "Final deliverable is a formally formatted Word (.docx) document."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "office-13",
+        "domain": "office",
+        "pool": "office-10",
+        "task": "根据这次会议的记录，写一篇对内发布的项目进展通讯，并把关键决策存到 Notion 知识库。",
+        "expected": {
+          "selectionMode": "single-required-with-optional",
+          "requiredIds": [
+            "office:anthropic-internal-comms"
+          ],
+          "allowedIds": [
+            "office:anthropic-internal-comms",
+            "office:openai-notion-knowledge-capture"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "office:anthropic-internal-comms"
+            ],
+            [
+              "office:anthropic-internal-comms",
+              "office:openai-notion-knowledge-capture"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "office:anthropic-internal-comms",
+            "office:openai-notion-knowledge-capture"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "office:anthropic-internal-comms",
+          "office:openai-notion-knowledge-capture"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "office:anthropic-internal-comms",
+            "reason": "任务要求基于会议记录撰写对内发布的项目进展通讯，属于内部沟通文书（状态报告/项目进展更新）的写作范畴。"
+          },
+          {
+            "id": "office:openai-notion-knowledge-capture",
+            "reason": "需将会议关键决策沉淀到 Notion 知识库，该技能专门用于把对话/笔记转化为结构化 Notion 页面并正确链接。"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "office-14",
+        "domain": "office",
+        "pool": "office-10",
+        "task": "Export this 3D scene to a printable STL file and repair any non-manifold geometry.",
+        "expected": {
+          "selectionMode": "none",
+          "allowedIds": [],
+          "acceptableSelectionSets": [
+            []
+          ],
+          "relevantCandidateIds": [],
+          "ownerChoiceRequired": false,
+          "noMatch": true,
+          "missingCapabilities": [
+            "3D scene/STL export and mesh repair (no such skill in the office pool)"
+          ]
+        },
+        "selected": [],
+        "status": "no_match",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "safe-no-match",
+            "pass": true
+          }
+        ],
+        "reasons": [],
+        "error": null
+      },
+      {
+        "id": "frontend-01",
+        "domain": "frontend",
+        "pool": "frontend-10",
+        "task": "把新产品的落地页做得更有辨识度，不要像常见 SaaS 模板，给出完整视觉方向。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "frontend:anthropic-frontend-design"
+          ],
+          "allowedIds": [
+            "frontend:anthropic-frontend-design"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "frontend:anthropic-frontend-design"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "frontend:anthropic-frontend-design"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "frontend:anthropic-frontend-design"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "frontend:anthropic-frontend-design",
+            "reason": "任务核心是让落地页视觉更具辨识度、避免模板化的 SaaS 观感，需要美学方向、字体与设计决策方面的指导，正是该技能的用途。"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "frontend-02",
+        "domain": "frontend",
+        "pool": "frontend-10",
+        "task": "做一个多页面 React 小工具，带路由、状态管理和 shadcn/ui 组件，能直接在浏览器里演示。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "frontend:anthropic-web-artifacts-builder"
+          ],
+          "allowedIds": [
+            "frontend:anthropic-web-artifacts-builder"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "frontend:anthropic-web-artifacts-builder"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "frontend:anthropic-web-artifacts-builder"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "frontend:anthropic-web-artifacts-builder"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "frontend:anthropic-web-artifacts-builder",
+            "reason": "Multi-page React artifact with routing, state management and shadcn/ui matches this skill's explicit scope (complex multi-component HTML artifacts)."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "frontend-03",
+        "domain": "frontend",
+        "pool": "frontend-10",
+        "task": "Use Playwright to open the local login page, verify form validation, capture screenshots, and collect console errors.",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "frontend:anthropic-webapp-testing"
+          ],
+          "allowedIds": [
+            "frontend:anthropic-webapp-testing"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "frontend:anthropic-webapp-testing"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "frontend:anthropic-webapp-testing"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "frontend:anthropic-webapp-testing"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "frontend:anthropic-webapp-testing",
+            "reason": "Directly matches Playwright-based testing of a local web app: verifying form validation, capturing screenshots, and collecting console logs."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "frontend-04",
+        "domain": "frontend",
+        "pool": "frontend-10",
+        "task": "给现有的 HTML 报告套一套统一的品牌主题，包含配色、字体和组件样式。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "frontend:anthropic-theme-factory"
+          ],
+          "allowedIds": [
+            "frontend:anthropic-theme-factory"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "frontend:anthropic-theme-factory"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "frontend:anthropic-theme-factory"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "frontend:anthropic-theme-factory"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "frontend:anthropic-theme-factory",
+            "reason": "Applies a consistent brand theme (colors, fonts, component styling) to an existing HTML report via preset or generated themes."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "frontend-05",
+        "domain": "frontend",
+        "pool": "frontend-10",
+        "task": "This component library has too many boolean props that conflict with each other. Refactor it into a composable API.",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "frontend:vercel-composition-patterns"
+          ],
+          "allowedIds": [
+            "frontend:vercel-composition-patterns"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "frontend:vercel-composition-patterns"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "frontend:vercel-composition-patterns"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "frontend:vercel-composition-patterns"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "frontend:vercel-composition-patterns",
+            "reason": "Component-library refactor from conflicting boolean props to a composable API is exactly the composition-patterns domain."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "frontend-06",
+        "domain": "frontend",
+        "pool": "frontend-10",
+        "task": "这个 Next.js 列表页首屏很慢，帮我按性能最佳实践找出重渲染和数据获取问题。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "frontend:vercel-react-best-practices"
+          ],
+          "allowedIds": [
+            "frontend:vercel-react-best-practices"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "frontend:vercel-react-best-practices"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "frontend:vercel-react-best-practices"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "frontend:vercel-react-best-practices"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "frontend:vercel-react-best-practices",
+            "reason": "Task asks to review a Next.js page for performance best practices covering re-renders and data fetching, which matches this React/Next.js performance guidance skill."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "frontend-07",
+        "domain": "frontend",
+        "pool": "frontend-10",
+        "task": "我们的 Expo 应用长列表滚动卡顿，帮我优化列表性能和原生模块调用。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "frontend:vercel-react-native-skills"
+          ],
+          "allowedIds": [
+            "frontend:vercel-react-native-skills"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "frontend:vercel-react-native-skills"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "frontend:vercel-react-native-skills"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "frontend:vercel-react-native-skills"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "frontend:vercel-react-native-skills",
+            "reason": "Expo is React Native; this is the only React Native-focused candidate, covering RN performance patterns relevant to list scrolling and native module usage."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "frontend-08",
+        "domain": "frontend",
+        "pool": "frontend-10",
+        "task": "Add a native-feeling shared-element animation between the route change and the image detail view, without pulling in an animation library.",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "frontend:vercel-react-view-transitions"
+          ],
+          "allowedIds": [
+            "frontend:vercel-react-view-transitions"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "frontend:vercel-react-view-transitions"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "frontend:vercel-react-view-transitions"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "frontend:vercel-react-view-transitions"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "frontend:vercel-react-view-transitions",
+            "reason": "Task asks for shared-element animation across a route change without a third-party animation library, exactly the React View Transition API guidance this skill provides."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "frontend-09",
+        "domain": "frontend",
+        "pool": "frontend-10",
+        "task": "审查这个页面的可访问性和交互细节，按 Web Interface Guidelines 给出问题清单。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "frontend:vercel-web-design-guidelines"
+          ],
+          "allowedIds": [
+            "frontend:vercel-web-design-guidelines"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "frontend:vercel-web-design-guidelines"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "frontend:vercel-web-design-guidelines"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "frontend:vercel-web-design-guidelines"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "frontend:vercel-web-design-guidelines",
+            "reason": "Directly matches a UI/accessibility review against Web Interface Guidelines, which the task explicitly requests."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "frontend-10",
+        "domain": "frontend",
+        "pool": "frontend-10",
+        "task": "我们 Vercel 账单这个月涨了很多，帮我定位哪些路由和函数调用最烧钱。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "frontend:vercel-vercel-optimize"
+          ],
+          "allowedIds": [
+            "frontend:vercel-vercel-optimize"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "frontend:vercel-vercel-optimize"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "frontend:vercel-vercel-optimize"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "frontend:vercel-vercel-optimize"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "frontend:vercel-vercel-optimize",
+            "reason": "该任务需要定位 Vercel 账单上涨与高成本路由/函数调用，与 Vercel 成本与性能优化技能的触发场景（账单降低、昂贵路由、Function Invocations、成本明细）直接匹配。"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "frontend-11",
+        "domain": "frontend",
+        "pool": "frontend-10",
+        "task": "这个设置面板越改越复杂，布尔 props 很多，切换时还明显卡顿，想同时把结构和性能理顺。",
+        "expected": {
+          "selectionMode": "exclusive-choice-or-multi",
+          "allowedIds": [
+            "frontend:vercel-composition-patterns",
+            "frontend:vercel-react-best-practices"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "frontend:vercel-composition-patterns"
+            ],
+            [
+              "frontend:vercel-react-best-practices"
+            ],
+            [
+              "frontend:vercel-composition-patterns",
+              "frontend:vercel-react-best-practices"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "frontend:vercel-composition-patterns",
+            "frontend:vercel-react-best-practices"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "frontend:vercel-composition-patterns",
+          "frontend:vercel-react-best-practices"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "frontend:vercel-composition-patterns",
+            "reason": "Eliminates prop sprawl by restructuring components with composition patterns instead of many boolean props"
+          },
+          {
+            "id": "frontend:vercel-react-best-practices",
+            "reason": "Re-render and performance guidance for the laggy toggling behavior"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "frontend-12",
+        "domain": "frontend",
+        "pool": "frontend-10",
+        "task": "把这份季度报告网页做得更有设计感，并统一到我们品牌色和字体。",
+        "expected": {
+          "selectionMode": "exclusive-choice-or-multi",
+          "allowedIds": [
+            "frontend:anthropic-frontend-design",
+            "frontend:anthropic-theme-factory"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "frontend:anthropic-frontend-design"
+            ],
+            [
+              "frontend:anthropic-theme-factory"
+            ],
+            [
+              "frontend:anthropic-frontend-design",
+              "frontend:anthropic-theme-factory"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "frontend:anthropic-frontend-design",
+            "frontend:anthropic-theme-factory"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "frontend:anthropic-frontend-design",
+          "frontend:anthropic-theme-factory"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "frontend:anthropic-frontend-design",
+            "reason": "Task asks for stronger visual design and intentional aesthetics on an existing web page."
+          },
+          {
+            "id": "frontend:anthropic-theme-factory",
+            "reason": "Applies brand colors and fonts consistently as a theme across the report page."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "frontend-13",
+        "domain": "frontend",
+        "pool": "frontend-10",
+        "task": "给列表排序加平滑过渡动画，并实际跑浏览器验证排序后交互和焦点没有坏。",
+        "expected": {
+          "selectionMode": "multi-skill",
+          "requiredIds": [
+            "frontend:vercel-react-view-transitions",
+            "frontend:anthropic-webapp-testing"
+          ],
+          "allowedIds": [
+            "frontend:vercel-react-view-transitions",
+            "frontend:anthropic-webapp-testing"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "frontend:vercel-react-view-transitions",
+              "frontend:anthropic-webapp-testing"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "frontend:vercel-react-view-transitions",
+            "frontend:anthropic-webapp-testing"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "frontend:vercel-react-view-transitions",
+          "frontend:anthropic-webapp-testing"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "frontend:vercel-react-view-transitions",
+            "reason": "Task asks for smooth list-reorder sorting animation; this skill covers animating list reorder and enter/exit transitions in React/Next.js."
+          },
+          {
+            "id": "frontend:anthropic-webapp-testing",
+            "reason": "Task requires actually running a browser to verify post-sort interaction and focus; Playwright-based toolkit supports functional verification, focus checks and console logs."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "frontend-14",
+        "domain": "frontend",
+        "pool": "frontend-10",
+        "task": "Build and submit this Flutter app to the App Store, including signing and review metadata.",
+        "expected": {
+          "selectionMode": "none",
+          "allowedIds": [],
+          "acceptableSelectionSets": [
+            []
+          ],
+          "relevantCandidateIds": [],
+          "ownerChoiceRequired": false,
+          "noMatch": true,
+          "missingCapabilities": [
+            "Flutter build/signing and App Store submission (no such skill in the frontend pool)"
+          ]
+        },
+        "selected": [],
+        "status": "no_match",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "safe-no-match",
+            "pass": true
+          }
+        ],
+        "reasons": [],
+        "error": null
+      },
+      {
+        "id": "development-01",
+        "domain": "development",
+        "pool": "development-10",
+        "task": "我有个新功能想法但还很模糊，先帮我把目标、约束和可选方案聊清楚。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "development:superpowers-brainstorming"
+          ],
+          "allowedIds": [
+            "development:superpowers-brainstorming"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "development:superpowers-brainstorming"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "development:superpowers-brainstorming"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "development:superpowers-brainstorming"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "development:superpowers-brainstorming",
+            "reason": "The idea is still vague, so the immediate need is a structured conversation that clarifies goals, constraints, and possible options before any implementation begins."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "development-02",
+        "domain": "development",
+        "pool": "development-10",
+        "task": "需求文档已经定了，帮我拆成可执行的分步实施计划，标出依赖和验收点。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "development:superpowers-writing-plans"
+          ],
+          "allowedIds": [
+            "development:superpowers-writing-plans"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "development:superpowers-writing-plans"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "development:superpowers-writing-plans"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "development:superpowers-writing-plans"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "development:superpowers-writing-plans",
+            "reason": "需求已确定，需要将需求拆成多步实施计划并标注依赖与验收点，正是 writing-plans 的用途"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "development-03",
+        "domain": "development",
+        "pool": "development-10",
+        "task": "The implementation plan is approved. Execute it step by step in this session yourself; do not spawn subagents.",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "development:superpowers-executing-plans"
+          ],
+          "allowedIds": [
+            "development:superpowers-executing-plans"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "development:superpowers-executing-plans"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "development:superpowers-executing-plans"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "development:superpowers-executing-plans"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "development:superpowers-executing-plans",
+            "reason": "Task explicitly asks to execute an approved implementation plan step by step in the current session without subagents, which matches the inline-execution skill exactly."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "development-04",
+        "domain": "development",
+        "pool": "development-10",
+        "task": "有个偶发失败的测试，重跑有时过有时不过，先帮我系统定位根因再改。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "development:superpowers-systematic-debugging"
+          ],
+          "allowedIds": [
+            "development:superpowers-systematic-debugging"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "development:superpowers-systematic-debugging"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "development:superpowers-systematic-debugging"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "development:superpowers-systematic-debugging"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "development:superpowers-systematic-debugging",
+            "reason": "任务核心是偶发失败测试的系统性根因定位，要求在提改动前先做系统排查，与该技能触发条件完全吻合"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "development-05",
+        "domain": "development",
+        "pool": "development-10",
+        "task": "Implement a date-range parser by writing a failing test first, then the minimal implementation, then refactor.",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "development:superpowers-test-driven-development"
+          ],
+          "allowedIds": [
+            "development:superpowers-test-driven-development"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "development:superpowers-test-driven-development"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "development:superpowers-test-driven-development"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "development:superpowers-test-driven-development"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "development:superpowers-test-driven-development",
+            "reason": "Task explicitly requires failing test first, minimal implementation, then refactor"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "development-06",
+        "domain": "development",
+        "pool": "development-10",
+        "task": "功能已经写完，准备说完成了；先跑验证命令并核对输出再下结论。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "development:superpowers-verification-before-completion"
+          ],
+          "allowedIds": [
+            "development:superpowers-verification-before-completion"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "development:superpowers-verification-before-completion"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "development:superpowers-verification-before-completion"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "development:superpowers-verification-before-completion"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "development:superpowers-verification-before-completion",
+            "reason": "准备宣称完成前，需先运行验证命令并核对输出，再下结论"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "development-07",
+        "domain": "development",
+        "pool": "development-10",
+        "task": "这个较大的功能分支准备合并，帮我发起一次代码审查并整理审查重点。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "development:superpowers-requesting-code-review"
+          ],
+          "allowedIds": [
+            "development:superpowers-requesting-code-review"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "development:superpowers-requesting-code-review"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "development:superpowers-requesting-code-review"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "development:superpowers-requesting-code-review"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "development:superpowers-requesting-code-review",
+            "reason": "用户要在合并前发起代码审查并整理审查重点，与 requesting-code-review 的适用场景（完成任务或合并前验证工作是否符合需求）直接对应。"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "development-08",
+        "domain": "development",
+        "pool": "development-10",
+        "task": "A reviewer left a long list of comments, some of which I disagree with. Verify each point before changing anything.",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "development:superpowers-receiving-code-review"
+          ],
+          "allowedIds": [
+            "development:superpowers-receiving-code-review"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "development:superpowers-receiving-code-review"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "development:superpowers-receiving-code-review"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "development:superpowers-receiving-code-review",
+          "development:superpowers-verification-before-completion"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": false,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": false
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": false
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "development:superpowers-receiving-code-review",
+            "reason": "Task is responding to reviewer feedback and verifying each point before implementing, which is exactly this skill's purpose"
+          },
+          {
+            "id": "development:superpowers-verification-before-completion",
+            "reason": "Supporting: claims about each review point being valid/fixed should be evidence-backed"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "development-09",
+        "domain": "development",
+        "pool": "development-10",
+        "task": "实现完成、测试都过了，现在要决定怎么合并回主干并收尾。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "development:superpowers-finishing-a-development-branch"
+          ],
+          "allowedIds": [
+            "development:superpowers-finishing-a-development-branch"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "development:superpowers-finishing-a-development-branch"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "development:superpowers-finishing-a-development-branch"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "development:superpowers-finishing-a-development-branch"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "development:superpowers-finishing-a-development-branch",
+            "reason": "实现完成且测试通过，需要决定如何合并回主干并收尾，正对应此技能"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "development-10",
+        "domain": "development",
+        "pool": "development-10",
+        "task": "Start a feature that will touch many files, but first give me a workspace isolated from my current checkout.",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "development:superpowers-using-git-worktrees"
+          ],
+          "allowedIds": [
+            "development:superpowers-using-git-worktrees"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "development:superpowers-using-git-worktrees"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "development:superpowers-using-git-worktrees"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "development:superpowers-using-git-worktrees"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "development:superpowers-using-git-worktrees",
+            "reason": "The task explicitly asks for an isolated workspace before starting multi-file feature work, which is exactly this skill's purpose."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "development-11",
+        "domain": "development",
+        "pool": "development-10",
+        "task": "有个偶发失败的测试，既要找到根因，也要补一个能防止复发的回归测试。",
+        "expected": {
+          "selectionMode": "multi-skill",
+          "requiredIds": [
+            "development:superpowers-systematic-debugging",
+            "development:superpowers-test-driven-development"
+          ],
+          "allowedIds": [
+            "development:superpowers-systematic-debugging",
+            "development:superpowers-test-driven-development"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "development:superpowers-systematic-debugging",
+              "development:superpowers-test-driven-development"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "development:superpowers-systematic-debugging",
+            "development:superpowers-test-driven-development"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "development:superpowers-systematic-debugging",
+          "development:superpowers-test-driven-development"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "development:superpowers-systematic-debugging",
+            "reason": "偶发失败的测试需要先系统性地定位根因，再提出修复方案"
+          },
+          {
+            "id": "development:superpowers-test-driven-development",
+            "reason": "补一个防复发的回归测试属于在写实现前先写测试，符合 TDD 流程"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "development-12",
+        "domain": "development",
+        "pool": "development-10",
+        "task": "功能做完了，测试也跑过了，合并前想再确认没有漏掉要求。",
+        "expected": {
+          "selectionMode": "exclusive-choice-or-multi",
+          "allowedIds": [
+            "development:superpowers-verification-before-completion",
+            "development:superpowers-requesting-code-review"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "development:superpowers-verification-before-completion"
+            ],
+            [
+              "development:superpowers-requesting-code-review"
+            ],
+            [
+              "development:superpowers-verification-before-completion",
+              "development:superpowers-requesting-code-review"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "development:superpowers-verification-before-completion",
+            "development:superpowers-requesting-code-review"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "development:superpowers-requesting-code-review",
+          "development:superpowers-verification-before-completion"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "development:superpowers-requesting-code-review",
+            "reason": "合并前确认实现是否覆盖全部需求，属于完成前请求代码审查的典型场景"
+          },
+          {
+            "id": "development:superpowers-verification-before-completion",
+            "reason": "用户准备合并并宣称已完成，需要用证据核对测试与需求，再做成功结论"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "development-13",
+        "domain": "development",
+        "pool": "development-10",
+        "task": "新需求只有一个方向性描述，先帮我理清方案，再形成能交给同事执行的计划。",
+        "expected": {
+          "selectionMode": "exclusive-choice-or-multi",
+          "allowedIds": [
+            "development:superpowers-brainstorming",
+            "development:superpowers-writing-plans"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "development:superpowers-brainstorming"
+            ],
+            [
+              "development:superpowers-writing-plans"
+            ],
+            [
+              "development:superpowers-brainstorming",
+              "development:superpowers-writing-plans"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "development:superpowers-brainstorming",
+            "development:superpowers-writing-plans"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "development:superpowers-brainstorming",
+          "development:superpowers-writing-plans"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "development:superpowers-brainstorming",
+            "reason": "The request starts from a single directional description, so the approach must be explored and clarified first"
+          },
+          {
+            "id": "development:superpowers-writing-plans",
+            "reason": "Once the approach is settled, a multi-step plan must be written that a colleague can execute"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "development-14",
+        "domain": "development",
+        "pool": "development-10",
+        "task": "转写这段会议录音并自动加字幕，保留说话人的时间轴。",
+        "expected": {
+          "selectionMode": "none",
+          "allowedIds": [],
+          "acceptableSelectionSets": [
+            []
+          ],
+          "relevantCandidateIds": [],
+          "ownerChoiceRequired": false,
+          "noMatch": true,
+          "missingCapabilities": [
+            "Flutter/Dart SDK upgrade and Android Gradle toolchain repair (no such skill in the development pool)"
+          ]
+        },
+        "selected": [],
+        "status": "no_match",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "safe-no-match",
+            "pass": true
+          }
+        ],
+        "reasons": [],
+        "error": null
+      },
+      {
+        "id": "data-01",
+        "domain": "data",
+        "pool": "data-10",
+        "task": "拿到一份实验 CSV，先检查缺失值、异常值、重复行和数据泄漏风险，给分析报告骨架。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "data:scientific-exploratory-data-analysis"
+          ],
+          "allowedIds": [
+            "data:scientific-exploratory-data-analysis"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "data:scientific-exploratory-data-analysis"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "data:scientific-exploratory-data-analysis"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "data:scientific-exploratory-data-analysis"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "data:scientific-exploratory-data-analysis",
+            "reason": "CSV 缺失值、异常值、重复行、数据泄漏审计与分析报告骨架正是有界探索性数据分析的核心范围。"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "data-02",
+        "domain": "data",
+        "pool": "data-10",
+        "task": "Use Polars lazy queries and streaming aggregation on this 20 GB Parquet dataset without blowing up memory.",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "data:scientific-polars"
+          ],
+          "allowedIds": [
+            "data:scientific-polars"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "data:scientific-polars"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "data:scientific-polars"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "data:scientific-polars"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "data:scientific-polars",
+            "reason": "Task explicitly requests Polars lazy queries and streaming aggregation on Parquet data, matching the Polars skill's lazy optimization and out-of-core streaming support."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "data-03",
+        "domain": "data",
+        "pool": "data-10",
+        "task": "为一篇论文画一个带误差棒和自定义标注的复杂图，需要细粒度控制。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "data:scientific-matplotlib"
+          ],
+          "allowedIds": [
+            "data:scientific-matplotlib"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "data:scientific-matplotlib"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "data:scientific-matplotlib"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "data:scientific-matplotlib"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "data:scientific-matplotlib",
+            "reason": "任务需要对复杂的论文插图进行细粒度控制，包括误差棒和自定义标注；而 Matplotlib 正是用于此类精细控制、自定义绘图元素和出版导出的工具。"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "data-04",
+        "domain": "data",
+        "pool": "data-10",
+        "task": "用 Seaborn 快速画分组箱线图和回归关系图，处理缺失值并显示置信区间。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "data:scientific-seaborn"
+          ],
+          "allowedIds": [
+            "data:scientific-seaborn"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "data:scientific-seaborn"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "data:scientific-seaborn"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "data:scientific-seaborn"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "data:scientific-seaborn",
+            "reason": "Task asks for quick Seaborn grouped boxplots and regression plots with missing-data handling and confidence intervals, which is exactly what the seaborn skill covers."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "data-05",
+        "domain": "data",
+        "pool": "data-10",
+        "task": "Turn these results into a journal-ready multi-panel figure and check color contrast and export specifications.",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "data:scientific-scientific-visualization"
+          ],
+          "allowedIds": [
+            "data:scientific-scientific-visualization"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "data:scientific-scientific-visualization"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "data:scientific-scientific-visualization"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "data:scientific-scientific-visualization"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "data:scientific-scientific-visualization",
+            "reason": "Directly covers publication-ready multi-panel journal figures plus color/contrast and export specification checks."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "data-06",
+        "domain": "data",
+        "pool": "data-10",
+        "task": "比较三组实验结果的差异，检查假设、算效应量，并按 APA 格式写结果。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "data:scientific-statistical-analysis"
+          ],
+          "allowedIds": [
+            "data:scientific-statistical-analysis"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "data:scientific-statistical-analysis"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "data:scientific-statistical-analysis"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "data:scientific-statistical-analysis"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "data:scientific-statistical-analysis",
+            "reason": "任务要求三组比较、假设检查、效应量与 APA 结果报告，正是统计分析技能的适用范围"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "data-07",
+        "domain": "data",
+        "pool": "data-10",
+        "task": "正式实验前要估算样本量，给定效应量和 80% 功效，帮我做功效分析。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "data:scientific-statistical-power"
+          ],
+          "allowedIds": [
+            "data:scientific-statistical-power"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "data:scientific-statistical-power"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "data:scientific-statistical-power"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "data:scientific-statistical-power"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "data:scientific-statistical-power",
+            "reason": "Pre-experiment sample size estimation with a given effect size and 80% power is an a priori power analysis, the core purpose of this skill."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "data-08",
+        "domain": "data",
+        "pool": "data-10",
+        "task": "Train a classifier on this table, run cross-validation, tune hyperparameters, and evaluate it honestly.",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "data:scientific-scikit-learn"
+          ],
+          "allowedIds": [
+            "data:scientific-scikit-learn"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "data:scientific-scikit-learn"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "data:scientific-scikit-learn"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "data:scientific-scikit-learn"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "data:scientific-scikit-learn",
+            "reason": "Task is supervised classification with cross-validation and hyperparameter tuning, which is the scikit-learn skill's core scope."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "data-09",
+        "domain": "data",
+        "pool": "data-10",
+        "task": "读取这批 Shapefile，做空间连接和缓冲区分析，再画一张地图。",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "data:scientific-geopandas"
+          ],
+          "allowedIds": [
+            "data:scientific-geopandas"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "data:scientific-geopandas"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "data:scientific-geopandas"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "data:scientific-geopandas",
+          "data:scientific-matplotlib"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": false,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": false
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": false
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "data:scientific-geopandas",
+            "reason": "任务需要直接读取 Shapefile（矢量数据 I/O）并做空间连接、缓冲区叠加，属于 GeoPandas GeoDataFrame 与空间操作的核心场景"
+          },
+          {
+            "id": "data:scientific-matplotlib",
+            "reason": "最后一步要求绘制地图，Matplotlib 提供对图形元素和地图版式的细粒度控制，可基于 GeoDataFrame 渲染出图"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "data-10",
+        "domain": "data",
+        "pool": "data-10",
+        "task": "Derive this integral symbolically and solve the equation system exactly, with LaTeX output.",
+        "expected": {
+          "selectionMode": "single",
+          "requiredIds": [
+            "data:scientific-sympy"
+          ],
+          "allowedIds": [
+            "data:scientific-sympy"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "data:scientific-sympy"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "data:scientific-sympy"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "data:scientific-sympy"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "data:scientific-sympy",
+            "reason": "Task requires exact symbolic integration, exact equation-system solving, and LaTeX output — SymPy's core capabilities."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "data-11",
+        "domain": "data",
+        "pool": "data-10",
+        "task": "把这批实验结果做成可投稿的多面板图，要能快速比较组间分布，也要统一风格。",
+        "expected": {
+          "selectionMode": "exclusive-choice-or-multi",
+          "allowedIds": [
+            "data:scientific-matplotlib",
+            "data:scientific-seaborn",
+            "data:scientific-scientific-visualization"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "data:scientific-matplotlib"
+            ],
+            [
+              "data:scientific-seaborn"
+            ],
+            [
+              "data:scientific-scientific-visualization"
+            ],
+            [
+              "data:scientific-matplotlib",
+              "data:scientific-scientific-visualization"
+            ],
+            [
+              "data:scientific-seaborn",
+              "data:scientific-scientific-visualization"
+            ],
+            [
+              "data:scientific-matplotlib",
+              "data:scientific-seaborn",
+              "data:scientific-scientific-visualization"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "data:scientific-matplotlib",
+            "data:scientific-seaborn",
+            "data:scientific-scientific-visualization"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "data:scientific-scientific-visualization",
+          "data:scientific-seaborn"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "data:scientific-scientific-visualization",
+            "reason": "任务要求可投稿的多面板图与统一风格，正是该技能的核心：多面板布局、期刊导出规划、色彩/对比度审查。"
+          },
+          {
+            "id": "data:scientific-seaborn",
+            "reason": "需要快速比较组间分布，适合用 Seaborn 的分布/分类比较图做探索性面板。"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "data-12",
+        "domain": "data",
+        "pool": "data-10",
+        "task": "实验做完了，想比较两组差异并说明当初的样本量是否足够。",
+        "expected": {
+          "selectionMode": "single-required-with-optional",
+          "requiredIds": [
+            "data:scientific-statistical-analysis"
+          ],
+          "allowedIds": [
+            "data:scientific-statistical-analysis",
+            "data:scientific-statistical-power"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "data:scientific-statistical-analysis"
+            ],
+            [
+              "data:scientific-statistical-analysis",
+              "data:scientific-statistical-power"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "data:scientific-statistical-analysis",
+            "data:scientific-statistical-power"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "data:scientific-statistical-analysis",
+          "data:scientific-statistical-power"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "data:scientific-statistical-analysis",
+            "reason": "Comparing two groups after data collection needs guided test selection, assumption checks, effect sizes and reporting."
+          },
+          {
+            "id": "data:scientific-statistical-power",
+            "reason": "Judging whether the original sample size was adequate is a power/sample-size question, best handled by the power skill."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "data-13",
+        "domain": "data",
+        "pool": "data-10",
+        "task": "拿到一份 CSV，先看数据质量和缺失，再判断能不能做预测建模，并选一个合适的评估方案。",
+        "expected": {
+          "selectionMode": "single-required-with-optional",
+          "requiredIds": [
+            "data:scientific-exploratory-data-analysis"
+          ],
+          "allowedIds": [
+            "data:scientific-exploratory-data-analysis",
+            "data:scientific-scikit-learn",
+            "data:scientific-statistical-analysis"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "data:scientific-exploratory-data-analysis"
+            ],
+            [
+              "data:scientific-exploratory-data-analysis",
+              "data:scientific-scikit-learn"
+            ],
+            [
+              "data:scientific-exploratory-data-analysis",
+              "data:scientific-statistical-analysis"
+            ],
+            [
+              "data:scientific-exploratory-data-analysis",
+              "data:scientific-scikit-learn",
+              "data:scientific-statistical-analysis"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "data:scientific-exploratory-data-analysis",
+            "data:scientific-scikit-learn",
+            "data:scientific-statistical-analysis"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "data:scientific-exploratory-data-analysis",
+          "data:scientific-scikit-learn"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "data:scientific-exploratory-data-analysis",
+            "reason": "CSV data quality and missingness assessment comes first"
+          },
+          {
+            "id": "data:scientific-scikit-learn",
+            "reason": "Deciding predictive-modeling feasibility and choosing an evaluation scheme"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "data-14",
+        "domain": "data",
+        "pool": "data-10",
+        "task": "帮我把这段 WAV 录音转成文字并生成中文字幕。",
+        "expected": {
+          "selectionMode": "none",
+          "allowedIds": [],
+          "acceptableSelectionSets": [
+            []
+          ],
+          "relevantCandidateIds": [],
+          "ownerChoiceRequired": false,
+          "noMatch": true,
+          "missingCapabilities": [
+            "Speech-to-text transcription and subtitle timing (no such skill in the data pool)"
+          ]
+        },
+        "selected": [],
+        "status": "no_match",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "safe-no-match",
+            "pass": true
+          }
+        ],
+        "reasons": [],
+        "error": null
+      },
+      {
+        "id": "cross-01",
+        "domain": "cross-domain",
+        "pool": "combined-40",
+        "task": "把这份 PDF 年报里的财务表格提取出来，整理成 Excel，再画一张三年趋势图。",
+        "expected": {
+          "selectionMode": "multi-skill-with-choice",
+          "requiredIds": [
+            "office:anthropic-xlsx"
+          ],
+          "allowedIds": [
+            "office:anthropic-pdf",
+            "office:openai-pdf",
+            "office:anthropic-xlsx",
+            "data:scientific-matplotlib",
+            "data:scientific-seaborn",
+            "data:scientific-scientific-visualization"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "office:anthropic-pdf",
+              "office:anthropic-xlsx",
+              "data:scientific-matplotlib"
+            ],
+            [
+              "office:anthropic-pdf",
+              "office:anthropic-xlsx",
+              "data:scientific-seaborn"
+            ],
+            [
+              "office:anthropic-pdf",
+              "office:anthropic-xlsx",
+              "data:scientific-scientific-visualization"
+            ],
+            [
+              "office:openai-pdf",
+              "office:anthropic-xlsx",
+              "data:scientific-matplotlib"
+            ],
+            [
+              "office:openai-pdf",
+              "office:anthropic-xlsx",
+              "data:scientific-seaborn"
+            ],
+            [
+              "office:openai-pdf",
+              "office:anthropic-xlsx",
+              "data:scientific-scientific-visualization"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "office:anthropic-pdf",
+            "office:openai-pdf",
+            "office:anthropic-xlsx",
+            "data:scientific-matplotlib",
+            "data:scientific-seaborn"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "office:anthropic-pdf",
+          "office:anthropic-xlsx",
+          "data:scientific-matplotlib"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "office:anthropic-pdf",
+            "reason": "提取 PDF 年报中的财务表格需要 PDF 文本/表格抽取能力"
+          },
+          {
+            "id": "office:anthropic-xlsx",
+            "reason": "将提取的表格整理并输出为 Excel 文件属于电子表格任务"
+          },
+          {
+            "id": "data:scientific-matplotlib",
+            "reason": "绘制三年趋势图需要 Matplotlib 对图表元素的精细控制"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "cross-02",
+        "domain": "cross-domain",
+        "pool": "combined-40",
+        "task": "下月路演：帮我把故事线想清楚，做成一套演示文稿，并检查视觉是否像模板。",
+        "expected": {
+          "selectionMode": "multi-skill-with-choice",
+          "allowedIds": [
+            "development:superpowers-brainstorming",
+            "office:anthropic-doc-coauthoring",
+            "office:anthropic-pptx",
+            "frontend:anthropic-frontend-design",
+            "frontend:anthropic-theme-factory"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "development:superpowers-brainstorming",
+              "office:anthropic-pptx"
+            ],
+            [
+              "development:superpowers-brainstorming",
+              "office:anthropic-pptx",
+              "frontend:anthropic-frontend-design"
+            ],
+            [
+              "development:superpowers-brainstorming",
+              "office:anthropic-pptx",
+              "frontend:anthropic-theme-factory"
+            ],
+            [
+              "office:anthropic-doc-coauthoring",
+              "office:anthropic-pptx"
+            ],
+            [
+              "office:anthropic-doc-coauthoring",
+              "office:anthropic-pptx",
+              "frontend:anthropic-frontend-design"
+            ],
+            [
+              "office:anthropic-doc-coauthoring",
+              "office:anthropic-pptx",
+              "frontend:anthropic-theme-factory"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "development:superpowers-brainstorming",
+            "office:anthropic-doc-coauthoring",
+            "office:anthropic-pptx",
+            "frontend:anthropic-frontend-design",
+            "frontend:anthropic-theme-factory"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "development:superpowers-brainstorming",
+          "office:anthropic-pptx",
+          "frontend:anthropic-theme-factory"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "development:superpowers-brainstorming",
+            "reason": "Task opens with shaping the storyline before any deck exists, which is creative work needing structured brainstorming."
+          },
+          {
+            "id": "office:anthropic-pptx",
+            "reason": "Deliverable is a presentation deck; this skill covers creating and editing .pptx slides, layouts, and themes."
+          },
+          {
+            "id": "frontend:anthropic-theme-factory",
+            "reason": "Covers styling slide artifacts and generating a bespoke theme, supporting the visual 'does it look templated' check."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "cross-03",
+        "domain": "cross-domain",
+        "pool": "combined-40",
+        "task": "Build an internal data dashboard: design the interface, implement reusable components, and check accessibility before handoff.",
+        "expected": {
+          "selectionMode": "multi-skill-with-choice",
+          "requiredIds": [
+            "frontend:vercel-web-design-guidelines"
+          ],
+          "allowedIds": [
+            "frontend:anthropic-frontend-design",
+            "frontend:anthropic-web-artifacts-builder",
+            "frontend:vercel-composition-patterns",
+            "frontend:vercel-web-design-guidelines",
+            "frontend:vercel-react-best-practices"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "frontend:anthropic-frontend-design",
+              "frontend:anthropic-web-artifacts-builder",
+              "frontend:vercel-web-design-guidelines"
+            ],
+            [
+              "frontend:anthropic-frontend-design",
+              "frontend:vercel-composition-patterns",
+              "frontend:vercel-web-design-guidelines"
+            ],
+            [
+              "frontend:anthropic-web-artifacts-builder",
+              "frontend:vercel-composition-patterns",
+              "frontend:vercel-web-design-guidelines"
+            ],
+            [
+              "frontend:anthropic-frontend-design",
+              "frontend:vercel-composition-patterns",
+              "frontend:vercel-web-design-guidelines",
+              "frontend:vercel-react-best-practices"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "frontend:anthropic-frontend-design",
+            "frontend:anthropic-web-artifacts-builder",
+            "frontend:vercel-composition-patterns",
+            "frontend:vercel-web-design-guidelines",
+            "frontend:vercel-react-best-practices"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "frontend:anthropic-frontend-design",
+          "frontend:vercel-composition-patterns",
+          "frontend:vercel-web-design-guidelines"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "frontend:anthropic-frontend-design",
+            "reason": "Design the dashboard's visual interface and aesthetic direction"
+          },
+          {
+            "id": "frontend:vercel-composition-patterns",
+            "reason": "Guides building reusable, composable dashboard components"
+          },
+          {
+            "id": "frontend:vercel-web-design-guidelines",
+            "reason": "Covers the accessibility and UX review step before handoff"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "cross-04",
+        "domain": "cross-domain",
+        "pool": "combined-40",
+        "task": "新功能从想法到合并：先厘清需求，写计划，测试先行实现，完成前验证并收尾。",
+        "expected": {
+          "selectionMode": "multi-skill",
+          "requiredIds": [
+            "development:superpowers-brainstorming",
+            "development:superpowers-writing-plans",
+            "development:superpowers-test-driven-development",
+            "development:superpowers-verification-before-completion",
+            "development:superpowers-finishing-a-development-branch"
+          ],
+          "allowedIds": [
+            "development:superpowers-brainstorming",
+            "development:superpowers-writing-plans",
+            "development:superpowers-executing-plans",
+            "development:superpowers-test-driven-development",
+            "development:superpowers-verification-before-completion",
+            "development:superpowers-finishing-a-development-branch"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "development:superpowers-brainstorming",
+              "development:superpowers-writing-plans",
+              "development:superpowers-test-driven-development",
+              "development:superpowers-verification-before-completion",
+              "development:superpowers-finishing-a-development-branch"
+            ],
+            [
+              "development:superpowers-brainstorming",
+              "development:superpowers-writing-plans",
+              "development:superpowers-executing-plans",
+              "development:superpowers-test-driven-development",
+              "development:superpowers-verification-before-completion",
+              "development:superpowers-finishing-a-development-branch"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "development:superpowers-brainstorming",
+            "development:superpowers-writing-plans",
+            "development:superpowers-executing-plans",
+            "development:superpowers-test-driven-development",
+            "development:superpowers-verification-before-completion",
+            "development:superpowers-finishing-a-development-branch"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "development:superpowers-brainstorming",
+          "development:superpowers-writing-plans",
+          "development:superpowers-test-driven-development",
+          "development:superpowers-verification-before-completion",
+          "development:superpowers-finishing-a-development-branch",
+          "development:superpowers-executing-plans"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "development:superpowers-brainstorming",
+            "reason": "前段要求“先厘清需求”，属于功能创建前的创意/需求澄清阶段"
+          },
+          {
+            "id": "development:superpowers-writing-plans",
+            "reason": "明确要求“写计划”，对应多步骤任务在动代码前产出实施计划"
+          },
+          {
+            "id": "development:superpowers-test-driven-development",
+            "reason": "明确要求“测试先行实现”，正是 TDD 的适用场景"
+          },
+          {
+            "id": "development:superpowers-verification-before-completion",
+            "reason": "明确要求“完成前验证”，需在宣称完成前运行验证并给出证据"
+          },
+          {
+            "id": "development:superpowers-finishing-a-development-branch",
+            "reason": "终点是“合并”，实现完成且测试通过后需决定如何集成分支"
+          },
+          {
+            "id": "development:superpowers-executing-plans",
+            "reason": "计划写完后需在当前会话内按计划实施，符合内联执行路径"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "cross-05",
+        "domain": "cross-domain",
+        "pool": "combined-40",
+        "task": "分析两组实验数据，写一份统计报告，最后交付 Word 文档。",
+        "expected": {
+          "selectionMode": "multi-skill",
+          "requiredIds": [
+            "data:scientific-statistical-analysis",
+            "office:anthropic-docx"
+          ],
+          "allowedIds": [
+            "data:scientific-statistical-analysis",
+            "office:anthropic-docx",
+            "office:anthropic-doc-coauthoring"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "data:scientific-statistical-analysis",
+              "office:anthropic-docx"
+            ],
+            [
+              "data:scientific-statistical-analysis",
+              "office:anthropic-docx",
+              "office:anthropic-doc-coauthoring"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "data:scientific-statistical-analysis",
+            "office:anthropic-docx",
+            "office:anthropic-doc-coauthoring"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "data:scientific-statistical-analysis",
+          "office:anthropic-docx"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "data:scientific-statistical-analysis",
+            "reason": "主任务是分析两组实验数据并做组间比较，适用 t 检验、ANOVA、效应量、假设检查及 APA 格式统计报告。"
+          },
+          {
+            "id": "office:anthropic-docx",
+            "reason": "最终交付物明确为 Word 文档，需用 docx 技能生成带格式的统计报告。"
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "cross-06",
+        "domain": "cross-domain",
+        "pool": "combined-40",
+        "task": "Estimate the sample size for an ethics application and turn the justification into an internal memo for the committee.",
+        "expected": {
+          "selectionMode": "multi-skill-with-choice",
+          "requiredIds": [
+            "data:scientific-statistical-power"
+          ],
+          "allowedIds": [
+            "data:scientific-statistical-power",
+            "office:anthropic-internal-comms",
+            "office:anthropic-doc-coauthoring",
+            "office:anthropic-docx"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "data:scientific-statistical-power",
+              "office:anthropic-internal-comms"
+            ],
+            [
+              "data:scientific-statistical-power",
+              "office:anthropic-internal-comms",
+              "office:anthropic-docx"
+            ],
+            [
+              "data:scientific-statistical-power",
+              "office:anthropic-doc-coauthoring"
+            ],
+            [
+              "data:scientific-statistical-power",
+              "office:anthropic-doc-coauthoring",
+              "office:anthropic-docx"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "data:scientific-statistical-power",
+            "office:anthropic-internal-comms",
+            "office:anthropic-doc-coauthoring",
+            "office:anthropic-docx"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "data:scientific-statistical-power",
+          "office:anthropic-internal-comms"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "data:scientific-statistical-power",
+            "reason": "Directly matches sample-size estimation with a priori power analysis justified for an IRB/ethics protocol."
+          },
+          {
+            "id": "office:anthropic-internal-comms",
+            "reason": "Matches turning the justification into an internal memo for the committee."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "cross-07",
+        "domain": "cross-domain",
+        "pool": "combined-40",
+        "task": "扫描版合同要 OCR 抽字段，整理成表格，还要核对盖章位置和排版是否被改动。",
+        "expected": {
+          "selectionMode": "multi-skill-with-choice",
+          "requiredIds": [
+            "office:anthropic-xlsx"
+          ],
+          "allowedIds": [
+            "office:anthropic-pdf",
+            "office:openai-pdf",
+            "office:anthropic-xlsx"
+          ],
+          "acceptableSelectionSets": [
+            [
+              "office:anthropic-pdf",
+              "office:anthropic-xlsx"
+            ],
+            [
+              "office:openai-pdf",
+              "office:anthropic-xlsx"
+            ],
+            [
+              "office:anthropic-pdf",
+              "office:openai-pdf",
+              "office:anthropic-xlsx"
+            ]
+          ],
+          "relevantCandidateIds": [
+            "office:anthropic-pdf",
+            "office:openai-pdf",
+            "office:anthropic-xlsx"
+          ],
+          "ownerChoiceRequired": true,
+          "noMatch": false
+        },
+        "selected": [
+          "office:anthropic-pdf",
+          "office:anthropic-xlsx"
+        ],
+        "status": "awaiting_choice",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "positive-nonempty",
+            "pass": true
+          },
+          {
+            "name": "required-ids",
+            "pass": true
+          },
+          {
+            "name": "allowed-ids",
+            "pass": true
+          },
+          {
+            "name": "acceptable-complete-set",
+            "pass": true
+          },
+          {
+            "name": "real-owner-choice-required",
+            "pass": true
+          }
+        ],
+        "reasons": [
+          {
+            "id": "office:anthropic-pdf",
+            "reason": "Scanned contract requires OCR text extraction, field/region inspection, and layout/seal-position verification on a PDF — the PDF skill covers OCR and page-level layout review."
+          },
+          {
+            "id": "office:anthropic-xlsx",
+            "reason": "Extracted contract fields need to be consolidated into a table deliverable, which the spreadsheet skill handles if a real .xlsx/.csv output is wanted."
+          }
+        ],
+        "error": null
+      },
+      {
+        "id": "cross-08",
+        "domain": "cross-domain",
+        "pool": "combined-40",
+        "task": "不要代写或改写，只把现成纪要发送到 Slack 并同步 Confluence；当前没有这两个服务的连接。",
+        "expected": {
+          "selectionMode": "none",
+          "allowedIds": [],
+          "acceptableSelectionSets": [
+            []
+          ],
+          "relevantCandidateIds": [],
+          "ownerChoiceRequired": false,
+          "noMatch": true,
+          "missingCapabilities": [
+            "slack.write",
+            "confluence.write"
+          ]
+        },
+        "selected": [],
+        "status": "no_match",
+        "strictPass": true,
+        "checks": [
+          {
+            "name": "ask-policy-preserved",
+            "pass": true
+          },
+          {
+            "name": "no-activation-or-execution",
+            "pass": true
+          },
+          {
+            "name": "safe-no-match",
+            "pass": true
+          }
+        ],
+        "reasons": [],
+        "error": null
+      }
+    ]
+  },
+  "nativeExecutions": {
+    "total": 4,
+    "controllerVerified": 4,
+    "originalRecordsChanged": false,
+    "newAuditModelCalls": 0,
+    "routeSelection": "Deterministic harness callback: this stage checks execution, not routing accuracy.",
+    "results": [
+      {
+        "id": "exec-office-pdf",
+        "domain": "office",
+        "mode": "ask",
+        "nativeSkill": "anthropic-pdf",
+        "rawEventSha256": "81a094df2e72fca65132a88cf8041abfcc1d770864d5690a6e7966743fb0ce7d",
+        "originalHarnessPass": false,
+        "originalSdkStatus": "verified",
+        "controllerVerified": true,
+        "checks": [
+          {
+            "name": "actual-completed-native-skill-tool",
+            "pass": true,
+            "details": null
+          },
+          {
+            "name": "native-process-exited-without-timeout",
+            "pass": true,
+            "details": null
+          },
+          {
+            "name": "ASK-held-before-owner-decision",
+            "pass": true,
+            "details": null
+          },
+          {
+            "name": "source-PDF-unchanged",
+            "pass": true,
+            "details": null
+          },
+          {
+            "name": "independent-PDF-fields",
+            "pass": true,
+            "details": {
+              "pageCount": 2,
+              "contractId": "SC-2026-0042",
+              "amount": "1234.50",
+              "party": "Acme Synthetic Ltd"
+            }
+          }
+        ],
+        "notices": []
+      },
+      {
+        "id": "exec-frontend-a11y",
+        "domain": "frontend",
+        "mode": "auto",
+        "nativeSkill": "vercel-web-design-guidelines",
+        "rawEventSha256": "9129468a3f6ef2c8cea01e39e0ea8bf2eceb4b772f42b9560efb32e6a753a8eb",
+        "originalHarnessPass": false,
+        "originalSdkStatus": "verified",
+        "controllerVerified": true,
+        "checks": [
+          {
+            "name": "actual-completed-native-skill-tool",
+            "pass": true,
+            "details": null
+          },
+          {
+            "name": "native-process-exited-without-timeout",
+            "pass": true,
+            "details": null
+          },
+          {
+            "name": "AUTO-explicit-policy",
+            "pass": true,
+            "details": null
+          },
+          {
+            "name": "source-HTML-unchanged",
+            "pass": true,
+            "details": null
+          },
+          {
+            "name": "same-line-findings-match-actual-HTML",
+            "pass": true,
+            "details": {
+              "matched": [
+                12,
+                13,
+                15,
+                18
+              ]
+            }
+          },
+          {
+            "name": "official-rules-fetched-and-saved-byte-for-byte",
+            "pass": true,
+            "details": {
+              "bytes": 8055,
+              "sha256": "d246b026f4f29b5823a9cc857f9edf3d2507002e055e32040cadeaf3b38e0234"
+            }
+          }
+        ],
+        "notices": [
+          {
+            "tool": "skill",
+            "status": "error",
+            "code": null,
+            "description": "Initial frontmatter-name lookup failed; succeeded with the package-directory ID."
+          }
+        ]
+      },
+      {
+        "id": "exec-development-debug",
+        "domain": "development",
+        "mode": "auto",
+        "nativeSkill": "superpowers-systematic-debugging",
+        "rawEventSha256": "6d64808a9cf15eb0ecb0de2aca59a0a73da06dbec3726b08dfce73477b921555",
+        "originalHarnessPass": false,
+        "originalSdkStatus": "execution_failed",
+        "controllerVerified": true,
+        "checks": [
+          {
+            "name": "actual-completed-native-skill-tool",
+            "pass": true,
+            "details": null
+          },
+          {
+            "name": "native-process-exited-without-timeout",
+            "pass": true,
+            "details": null
+          },
+          {
+            "name": "AUTO-explicit-policy",
+            "pass": true,
+            "details": null
+          },
+          {
+            "name": "original-test-unchanged",
+            "pass": true,
+            "details": null
+          },
+          {
+            "name": "actual-source-changed",
+            "pass": true,
+            "details": null
+          },
+          {
+            "name": "actual-RED-before-fix",
+            "pass": true,
+            "details": null
+          },
+          {
+            "name": "controller-rerun-tests-GREEN",
+            "pass": true,
+            "details": null
+          },
+          {
+            "name": "independent-extra-inputs",
+            "pass": true,
+            "details": null
+          }
+        ],
+        "notices": []
+      },
+      {
+        "id": "exec-data-eda",
+        "domain": "data",
+        "mode": "ask",
+        "nativeSkill": "scientific-exploratory-data-analysis",
+        "rawEventSha256": "934c279b3fcc746eea8cb6c80bbe4c99ba946ed3a1f27e498910d29525cb1852",
+        "originalHarnessPass": false,
+        "originalSdkStatus": "verified",
+        "controllerVerified": true,
+        "checks": [
+          {
+            "name": "actual-completed-native-skill-tool",
+            "pass": true,
+            "details": null
+          },
+          {
+            "name": "native-process-exited-without-timeout",
+            "pass": true,
+            "details": null
+          },
+          {
+            "name": "ASK-held-before-owner-decision",
+            "pass": true,
+            "details": null
+          },
+          {
+            "name": "source-CSV-unchanged",
+            "pass": true,
+            "details": null
+          },
+          {
+            "name": "independent-row-count-duplicates-missing-means",
+            "pass": true,
+            "details": {
+              "rows": 6,
+              "duplicateCount": 1,
+              "missing": {
+                "id": 0,
+                "group": 0,
+                "score": 1,
+                "age": 1
+              },
+              "means": {
+                "score": 12,
+                "age": 29.4
+              }
+            }
+          },
+          {
+            "name": "actual-report-written",
+            "pass": true,
+            "details": null
+          }
+        ],
+        "notices": [
+          {
+            "tool": "shell",
+            "status": "completed",
+            "code": 1,
+            "description": "Initial relative input path was inaccessible; retried successfully with an absolute fixture path."
+          }
+        ]
+      }
+    ]
+  },
+  "cleanConsumer": {
+    "version": "0.1.1",
+    "node": "24.22.3",
+    "npm": "11.19.1",
+    "passed": 9,
+    "failed": 0,
+    "authorSourceImported": false,
+    "checks": [
+      {
+        "name": "installed CLI help",
+        "pass": true
+      },
+      {
+        "name": "demo without init writes under caller and numeric outputs are independently verified",
+        "pass": true
+      },
+      {
+        "name": "installed init --demo preserves ASK, limits trust, and refuses to overwrite",
+        "pass": true
+      },
+      {
+        "name": "config discovery from nested Chinese path; init demo then real execution",
+        "pass": true
+      },
+      {
+        "name": "custom skills init trusts no scripts; explicit config overrides discovered config",
+        "pass": true
+      },
+      {
+        "name": "installed SDK ASK holds; owner chooses; two scripts execute; numeric truth checked",
+        "pass": true
+      },
+      {
+        "name": "installed SDK skip; explicit AUTO; genuine no_match",
+        "pass": true
+      },
+      {
+        "name": "owner can select a different near-neighbor skill with the same display name",
+        "pass": true
+      },
+      {
+        "name": "installed MCP real stdio init/list/call/ASK/no_match without --config after init",
+        "pass": true
+      }
+    ]
+  },
+  "offline": {
+    "tests": 34,
+    "passed": 34,
+    "failed": 0,
+    "lexicalFixtureCases": 8,
+    "lexicalFixturePassed": 8
+  },
+  "installation": {
+    "publicGitHubTarball": true,
+    "npmRegistryNameAvailable": false,
+    "ordinaryAnonymousInstallVerified": true,
+    "prerequisites": "Node >=20.11 and npm. Semantic selection needs a configured selector or host callback. Third-party skills may require their own tools/libraries/accounts."
+  },
+  "harnessIssuesPreserved": [
+    "An initial execution setup attempt rejected four cases before any model invocation because its root generated different stable IDs. It consumed zero native sessions.",
+    "The four real executions were initially recorded as failed because the harness compared frontmatter names with native directory IDs. Node 24 spec-reporter output also failed a TAP-only check. Controller reread the raw completed skill-tool events and actual artifacts, reran code tests, and independently verified all four. Original records and two routing mismatches remain unchanged.",
+    "A baseline MCP replay hit a 10-second client deadline; an older success file was rejected. A focused fresh-store probe and independent 0.1.1 consumer stdio test passed. No production MCP defect was established."
+  ],
+  "environment": {
+    "thirdPartySkillsInstalledGlobally": false,
+    "cleanupReport": "environment-restoration.json"
+  },
+  "limits": [
+    "All 40 packages were parsed and offered for routing; only four were actually executed.",
+    "No Notion, Slack, Vercel deployment, or other external write was performed.",
+    "Two excess recommendations remain observed limitations.",
+    "Runtime process execution is not an OS sandbox."
+  ]
+}

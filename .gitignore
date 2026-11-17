@@ -1,5 +1,6 @@
 # Runtime output
 runs/
+.skill-conductor/
 examples/runs/
 runs-*/
 *.jsonl
@@ -30,5 +31,7 @@ integration-temp/
 integration-audit/
 release/
 release-staging/
+onboarding-temp/
+onboarding-audit/
 .DS_Store
 Thumbs.db

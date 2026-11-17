@@ -1,5 +1,6 @@
 export {
   loadConfig,
+  discoverConfigPath,
   normalizeConfig,
   publicConfig,
   configFingerprint,

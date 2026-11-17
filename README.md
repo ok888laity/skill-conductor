@@ -2,9 +2,11 @@
 
 一个**宿主无关**的 SKILL.md 发现、推荐、人工选择、激活与可选受信任执行组件。核心是 Node.js ESM SDK 与 CLI；MCP stdio 是适配层，OpenCode 只是一个可选的语义选择器适配器，不是运行前提。
 
-当前 v0.1 默认采用 **ask（人工选择）**，显式开启 **auto** 后自主选择和调用，并保留推荐理由、执行状态和独立校验记录。
+当前 v0.1.1 默认采用 **ask（人工选择）**，显式开启 **auto** 后自主选择和调用，并保留推荐理由、执行状态和独立校验记录。
 
 English quickstart: [`README.en.md`](README.en.md). 开发期真实 OpenCode 集成结果（非 benchmark）见 [`docs/live-integration.md`](docs/live-integration.md)。
+
+普通用户安装与 **4 个领域、40 个真实 skill、64 个任务**的推荐测试、4 例真实执行及已知失败，见 [`docs/onboarding-test-report.md`](docs/onboarding-test-report.md)。
 
 可选的真实技能测试复现步骤见 [`docs/reproduce-live-tests.md`](docs/reproduce-live-tests.md)，本次临时技能清理与原环境哈希复核摘要见 [`docs/environment-restoration.json`](docs/environment-restoration.json)。
 
@@ -30,25 +32,29 @@ routed -> awaiting_choice -> decided -> activated -> executed
 
 若某个步骤的依赖没有实际执行（失败、超时、仅 handoff 或被阻塞），依赖步骤会记录为 `blocked`，即使 `stopOnError: false` 也不会继续执行它；互不相关的分支仍可继续。实际执行与待宿主 handoff 混合时，总体状态是 `partial`，不会被包装成 `completed` / `executed`。
 
-## 快速开始（Windows）
+## 安装与首次运行
 
-需要 Node.js >= 20.11。仓库自带 PowerShell/CMD 启动器 `skill-conductor.cmd`：
+需要 Node.js >= 20.11（已在 Node 24.22.3 / npm 11.19.1 上验证）。**npm registry 上的裸包名 `skill-conductor` 目前不可用（E404）**；请使用公开 GitHub 仓库的 HTTPS tarball，不要依赖 `npm install skill-conductor`。
 
-```powershell
-# 如果 node 不在 PATH，可显式指定（本机开发运行时示例）
-$env:SKILL_CONDUCTOR_NODE = "$env:USERPROFILE\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe"
-
-.\skill-conductor.cmd list --config examples\config.demo.json
-.\skill-conductor.cmd demo
-```
-
-不使用 `.cmd` 时直接运行：
+一次性运行（无需全局安装，产物写在当前目录）：
 
 ```powershell
-node bin\skill-conductor.mjs list --config examples\config.demo.json
+npx --yes --package=https://github.com/ok888laity/skill-conductor/archive/refs/heads/main.tar.gz skill-conductor demo
 ```
 
-`demo` 是**显式 auto** 的集成示例：它读取 `data\销售 数据.csv`（文件名含中文和空格），按依赖顺序运行两个受信任脚本，写出 `runs\artifacts\<runid>\csv-summary.json` 与 `report.md`，再由宿主 verifier 独立核对：
+全局安装后初始化并运行：
+
+```powershell
+npm install --global https://github.com/ok888laity/skill-conductor/archive/refs/heads/main.tar.gz
+skill-conductor init --demo
+skill-conductor demo
+```
+
+`init` 默认在**当前目录**创建 `.skill-conductor/config.json` 和空的 `./skills` 根，`policy` 保持 `ask`，且 `execution.enabled=false`（不信任任何脚本）。`init --root PATH` 使用已有技能根；已有配置或文件**不会被覆盖**。`init --demo` 把仓库自带的四个第一方演示技能与合成 CSV 复制到 `.skill-conductor/demo/`，只信任 `demo:csv-inspector` 与 `demo:markdown-report` 两个脚本，仍然保持 `ask`；`demo` 命令本身才是显式 auto。
+
+安装后的命令会从当前目录向上查找 `.skill-conductor/config.json`，再查找 `skill-conductor.config.json`；显式 `--config PATH` 始终优先。未初始化时 `demo` 仍可直接运行，但所有运行记录与产物写当前目录的 `.skill-conductor/runs/`，不会写安装包目录。显式 `--config` 则保留该配置里的 `execution.runDir`。
+
+`demo` 是**显式 auto** 的集成示例：它读取 `销售 数据.csv`（文件名含中文和空格），按依赖顺序运行两个受信任脚本，写出 `runs/artifacts/<runid>/csv-summary.json` 与 `report.md`，再由宿主 verifier 独立核对：
 
 - CSV 行数：6
 - 数量合计：40
@@ -56,20 +62,42 @@ node bin\skill-conductor.mjs list --config examples\config.demo.json
 
 这些数字来自本地实际运行，不是模型宣称。
 
+## 快速开始（Windows 源码树）
+
+仓库自带 PowerShell/CMD 启动器 `skill-conductor.cmd`：
+
+```powershell
+# 如果 node 不在 PATH，可显式指定（本机开发运行时示例）
+$env:SKILL_CONDUCTOR_NODE = "$env:USERPROFILE\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe"
+
+.\skill-conductor.cmd init --demo
+.\skill-conductor.cmd demo
+```
+
+不使用 `.cmd` 时直接运行：
+
+```powershell
+node bin\skill-conductor.mjs init --demo
+node bin\skill-conductor.mjs demo
+```
+
 ## CLI
 
 ```text
 skill-conductor.cmd help
-skill-conductor.cmd list --config PATH
-skill-conductor.cmd route TASK --config PATH [--material FILE ...] [--phase X]
-skill-conductor.cmd run TASK --config PATH [--material FILE ...] [--phase X]
-skill-conductor.cmd choose RUN_ID --config PATH (--skills ID,ID | --skip) [--activate-only]
-skill-conductor.cmd show RUN_ID --config PATH
-skill-conductor.cmd runs --config PATH
-skill-conductor.cmd interactive --config PATH
-skill-conductor.cmd mcp --config PATH
+skill-conductor.cmd init [--root PATH | --demo]
+skill-conductor.cmd list [--config PATH]
+skill-conductor.cmd route TASK [--config PATH] [--material FILE ...] [--phase X]
+skill-conductor.cmd run TASK [--config PATH] [--material FILE ...] [--phase X]
+skill-conductor.cmd choose RUN_ID [--config PATH] (--skills ID,ID | --skip) [--activate-only]
+skill-conductor.cmd show RUN_ID [--config PATH]
+skill-conductor.cmd runs [--config PATH]
+skill-conductor.cmd interactive [--config PATH]
+skill-conductor.cmd mcp [--config PATH]
+skill-conductor.cmd demo [--config PATH]
 ```
 
+- `init`：安全脚手架。默认只创建本地配置与技能根，不覆盖已有文件，也不启用执行；`--demo` 仅复制并信任仓库自带演示技能；`--root` 使用已有技能根。
 - `route`：只路由/激活上下文；在 ask 下返回 pending；不会执行脚本。
 - `run`：ask 下同样先返回 pending；所有者 `choose` 后才按持久化意图执行。
 - `choose`：新进程读取持久化 run，校验 pending 状态、plan token、技能/脚本/配置 hash；`--skip` 记录跳过；`--activate-only` 只激活。

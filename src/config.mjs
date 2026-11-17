@@ -304,6 +304,30 @@ export async function normalizeConfig(raw, { baseDir = process.cwd(), configPath
   return config;
 }
 
+/**
+ * Find a project-local config without reading any global location. Explicit
+ * --config always wins; this is only the fallback for installed commands.
+ * The search walks from the working directory toward the filesystem root.
+ */
+export async function discoverConfigPath(startDir = process.cwd()) {
+  const candidates = ['.skill-conductor/config.json', 'skill-conductor.config.json'];
+  let current = path.resolve(startDir);
+  for (;;) {
+    for (const relative of candidates) {
+      const file = path.join(current, relative);
+      try {
+        const stat = await fs.stat(file);
+        if (stat.isFile()) return file;
+      } catch {
+        // keep looking
+      }
+    }
+    const parent = path.dirname(current);
+    if (parent === current) return null;
+    current = parent;
+  }
+}
+
 export async function loadConfig(configPath, { cwd = process.cwd() } = {}) {
   if (typeof configPath !== 'string' || configPath.trim() === '') {
     throw new ConfigError('config path is required (--config PATH)');

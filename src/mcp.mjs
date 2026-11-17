@@ -3,7 +3,7 @@ import { toErrorObject } from './errors.mjs';
 import { getRun, listSkills, pendingView, prepareTask, resumeRun } from './router.mjs';
 
 const PROTOCOL_VERSION = '2024-11-05';
-const SERVER_INFO = { name: 'skill-conductor', version: '0.1.0' };
+const SERVER_INFO = { name: 'skill-conductor', version: '0.1.1' };
 
 const TOOLS = [
   {
